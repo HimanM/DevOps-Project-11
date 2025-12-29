@@ -25,15 +25,15 @@ const app = express();
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'"],
-      styleSrc: ["'self'"],
-      imgSrc: ["'self'"],
-      connectSrc: ["'self'"],
-      fontSrc: ["'self'"],
-      objectSrc: ["'none'"],
-      mediaSrc: ["'self'"],
-      frameSrc: ["'none'"]
+      defaultSrc: ['\'self\''],
+      scriptSrc: ['\'self\''],
+      styleSrc: ['\'self\''],
+      imgSrc: ['\'self\''],
+      connectSrc: ['\'self\''],
+      fontSrc: ['\'self\''],
+      objectSrc: ['\'none\''],
+      mediaSrc: ['\'self\''],
+      frameSrc: ['\'none\'']
     }
   },
   crossOriginEmbedderPolicy: false,
@@ -44,8 +44,8 @@ app.use(helmet({
 app.use(cors({
   origin: (origin, callback) => {
     // Allow requests with no origin (server-to-server, health checks)
-    if (!origin) return callback(null, true);
-    
+    if (!origin) { return callback(null, true); }
+
     if (config.allowedOrigins.includes(origin) || config.allowedOrigins.includes('*')) {
       callback(null, true);
     } else {
@@ -151,9 +151,9 @@ app.use((req, res) => {
 });
 
 // Global error handler
-app.use((err, req, res, next) => {
+app.use((err, req, res, _next) => {
   console.error(`[ERROR] ${err.message}`);
-  
+
   // Don't leak error details in production
   const errorResponse = {
     error: 'Internal Server Error',
