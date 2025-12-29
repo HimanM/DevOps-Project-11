@@ -428,6 +428,7 @@ jobs:
     name: Terraform Apply
     runs-on: ubuntu-latest
     needs: [manual-approval, container-build-push]
+    if: always() && needs.manual-approval.result == 'success' && (needs.container-build-push.result == 'success' || needs.container-build-push.result == 'skipped')
     defaults:
       run:
         working-directory: terraform
@@ -519,7 +520,7 @@ jobs:
     name: Update Image Tags
     runs-on: ubuntu-latest
     needs: [container-build-push, changes]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.changes.outputs.any == 'true'
+    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' && needs.changes.outputs.any == 'true'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
