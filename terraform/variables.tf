@@ -40,13 +40,13 @@ variable "availability_zones" {
 variable "frontend_image" {
   description = "Docker image for frontend service"
   type        = string
-  default     = "ghcr.io/himanm/devops-project-11-frontend:99e3ed1"
+  default     = "ghcr.io/himanm/devops-project-11-frontend:7ab3545"
 }
 
 variable "backend_image" {
   description = "Docker image for backend service"
   type        = string
-  default     = "ghcr.io/himanm/devops-project-11-backend:99e3ed1"
+  default     = "ghcr.io/himanm/devops-project-11-backend:7ab3545"
 }
 
 variable "frontend_cpu" {
