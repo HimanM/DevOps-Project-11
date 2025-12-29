@@ -52,25 +52,25 @@ variable "backend_image" {
 variable "frontend_cpu" {
   description = "CPU units for frontend task (1 vCPU = 1024)"
   type        = number
-  default     = 256
+  default     = 512
 }
 
 variable "frontend_memory" {
   description = "Memory in MB for frontend task"
   type        = number
-  default     = 512
+  default     = 1024
 }
 
 variable "backend_cpu" {
   description = "CPU units for backend task (1 vCPU = 1024)"
   type        = number
-  default     = 256
+  default     = 512
 }
 
 variable "backend_memory" {
   description = "Memory in MB for backend task"
   type        = number
-  default     = 512
+  default     = 1024
 }
 
 variable "frontend_desired_count" {

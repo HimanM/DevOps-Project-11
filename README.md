@@ -1,41 +1,204 @@
 # DevSecOps Pipeline Platform
 
-A production-grade DevSecOps demonstration platform implementing enterprise-level security standards across the entire software delivery lifecycle. This project showcases CI/CD security, Infrastructure as Code security, container security, and Policy-as-Code implementation.
+[![Pipeline Status](https://github.com/HimanM/DevOps-Project-11/actions/workflows/devsecops-pipeline.yml/badge.svg)](https://github.com/HimanM/DevOps-Project-11/actions/workflows/devsecops-pipeline.yml)
+
+A production-grade DevSecOps demonstration platform implementing enterprise-level security standards across the entire software delivery lifecycle. This project showcases **Security** as a first-class citizen in CI/CD, Infrastructure as Code, container management, and Policy-as-Code enforcement.
+
+---
+
+<!-- DEPLOYMENT_OUTPUTS_START -->
+## 🚀 Live Deployment
+
+> **Note:** This section is automatically updated by the CI/CD pipeline after each successful deployment.
+
+| Resource | Value |
+|----------|-------|
+| **🌐 Frontend URL** | *Deployment pending* |
+| **ECS Cluster** | devsecops-project-11-cluster |
+| **AWS Region** | us-west-2 |
+| **Last Deployed** | Not yet deployed |
+
+<!-- DEPLOYMENT_OUTPUTS_END -->
 
 ---
 
 ## Table of Contents
 
-- [Project Overview](#project-overview)
+- [What is DevSecOps?](#what-is-devsecops)
+- [Security Concepts Implemented](#security-concepts-implemented)
 - [Architecture](#architecture)
-  - [Infrastructure Diagram](#infrastructure-diagram)
-  - [Security Architecture](#security-architecture)
 - [Technology Stack](#technology-stack)
-- [CI/CD Pipeline Overview](#cicd-pipeline-overview)
-- [Security Controls](#security-controls)
-- [Deployment Flow](#deployment-flow)
-- [Manual Approval Process](#manual-approval-process)
-- [Drift Detection](#drift-detection)
+- [CI/CD Pipeline (14 Jobs)](#cicd-pipeline-14-jobs)
+- [Security Controls by Phase](#security-controls-by-phase)
 - [How to Run Locally](#how-to-run-locally)
 - [Repository Structure](#repository-structure)
 - [Configuration](#configuration)
+- [Infrastructure Teardown](#infrastructure-teardown)
 - [Contributing](#contributing)
 - [License](#license)
 
 ---
 
-## Project Overview
+## What is DevSecOps?
 
-This project demonstrates a complete DevSecOps implementation featuring:
+**DevSecOps** is the practice of integrating security practices within the DevOps process. The term combines **Development (Dev)**, **Security (Sec)**, and **Operations (Ops)** to emphasize that security is a shared responsibility throughout the entire software delivery lifecycle.
 
-- **Security-First CI/CD Pipeline**: 13 dedicated jobs covering secret scanning, vulnerability assessment, policy enforcement, and controlled deployments
-- **Infrastructure as Code**: AWS infrastructure defined entirely in Terraform with security scanning and policy validation
-- **Container Security**: Multi-stage Docker builds with non-root users, minimal base images, and vulnerability scanning
-- **Policy-as-Code**: Custom OPA/Rego policies enforcing organizational security standards
-- **Manual Approval Gates**: Human review required before production deployments
-- **Drift Detection**: Post-deployment infrastructure compliance monitoring
+### The "Sec" in DevSecOps
 
-The application layer is intentionally minimal to focus on the DevSecOps practices. The frontend serves as living documentation of the pipeline, while the backend demonstrates secure service-to-service communication.
+Traditional software development treated security as a final gate before release—a bottleneck that caused delays and friction. DevSecOps fundamentally changes this by:
+
+1. **Shifting Security Left**: Moving security checks earlier in the development process
+2. **Automating Security**: Removing manual security reviews through automated tooling
+3. **Continuous Security**: Treating security as a continuous process, not a one-time check
+4. **Shared Responsibility**: Making every team member responsible for security
+
+### Why DevSecOps Matters
+
+| Traditional Approach | DevSecOps Approach |
+|---------------------|-------------------|
+| Security at the end | Security from the start |
+| Manual security reviews | Automated security scanning |
+| Security team bottleneck | Distributed responsibility |
+| Expensive late-stage fixes | Cheap early-stage fixes |
+| Compliance as afterthought | Compliance as code |
+
+---
+
+## Security Concepts Implemented
+
+This project implements the following security concepts:
+
+### 1. 🔐 Secret Detection (Gitleaks)
+
+**Concept**: Prevent sensitive data (API keys, passwords, tokens) from being committed to source control.
+
+**Implementation**:
+- Gitleaks scans every push for hardcoded secrets
+- Patterns detect AWS keys, GitHub tokens, private keys, and more
+- Pipeline fails immediately if secrets are detected
+- Prevents credentials from reaching production
+
+```yaml
+# Pipeline Job: secret-scan
+- uses: gitleaks/gitleaks-action@v2
+```
+
+### 2. 🛡️ Static Application Security Testing (SAST)
+
+**Concept**: Analyze source code for security vulnerabilities without executing it.
+
+**Implementation**:
+- ESLint with security rules analyzes JavaScript/TypeScript
+- Identifies code patterns that could lead to vulnerabilities
+- npm audit checks dependencies for known vulnerabilities
+- Runs before container images are built
+
+### 3. 📦 Container Security
+
+**Concept**: Ensure container images are free from vulnerabilities and follow security best practices.
+
+**Implementation**:
+- **Trivy scanning**: Scans images for CVEs in OS packages and application dependencies
+- **Non-root users**: Containers run as unprivileged users (UID 1001)
+- **Minimal base images**: Alpine Linux reduces attack surface
+- **Multi-stage builds**: Final images contain only runtime dependencies
+- **Read-only considerations**: Containers designed for minimal write access
+
+```dockerfile
+# Non-root user in Dockerfile
+RUN adduser --system --uid 1001 appuser
+USER appuser
+```
+
+### 4. 🏗️ Infrastructure as Code (IaC) Security
+
+**Concept**: Apply security policies to infrastructure definitions before deployment.
+
+**Implementation**:
+- **Checkov**: Evaluates 400+ security policies against Terraform
+- Detects misconfigurations like public S3 buckets, open security groups
+- Enforces encryption, logging, and tagging requirements
+- Blocks deployment if critical issues found
+
+### 5. 📜 Policy-as-Code (OPA/Rego)
+
+**Concept**: Define and enforce organizational policies through code that can be versioned and tested.
+
+**Implementation**:
+- Custom Rego policies in `/policies` directory
+- Enforces rules like:
+  - Backend must not be publicly accessible
+  - Security groups must not allow 0.0.0.0/0 on sensitive ports
+  - All resources must have required tags
+- Policies evaluated against Terraform plan before apply
+
+```rego
+# Example: No public backend access
+deny[msg] {
+    resource := input.resource_changes[_]
+    resource.type == "aws_lb"
+    resource.change.after.internal == false
+    contains(resource.address, "backend")
+    msg := "Backend load balancer must be internal"
+}
+```
+
+### 6. 🔑 OIDC Authentication
+
+**Concept**: Passwordless authentication between CI/CD and cloud providers using identity federation.
+
+**Implementation**:
+- GitHub Actions uses OIDC to authenticate to AWS
+- No long-lived credentials stored in secrets
+- IAM role trust policy validates GitHub token claims
+- Tokens are short-lived and automatically rotated
+
+```yaml
+# OIDC in workflow
+- uses: aws-actions/configure-aws-credentials@v4
+  with:
+    role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+```
+
+### 7. 🎯 Least Privilege IAM
+
+**Concept**: Grant only the minimum permissions required for each component to function.
+
+**Implementation**:
+- **ECS Execution Role**: Only ECR pull and CloudWatch logs
+- **ECS Task Role**: X-Ray, Secrets Manager access only
+- **GitHub Actions Role**: Scoped to specific resources
+- No wildcard `*` actions on sensitive services
+
+### 8. 🌐 Network Segmentation
+
+**Concept**: Isolate components into security zones to limit blast radius of breaches.
+
+**Implementation**:
+- **Public subnets**: Only ALB exposed to internet
+- **Private subnets**: Backend services with no direct internet access
+- **Security groups**: Strict ingress/egress rules per component
+- **Internal ALB**: Backend only accessible from frontend
+
+### 9. ✅ Manual Approval Gates
+
+**Concept**: Require human review before production deployments.
+
+**Implementation**:
+- GitHub Environments with required reviewers
+- Terraform plan visible before approval
+- Audit trail of who approved what and when
+- Prevents automated but unauthorized deployments
+
+### 10. 🔄 Drift Detection
+
+**Concept**: Detect when actual infrastructure differs from defined state.
+
+**Implementation**:
+- Runs after every deployment
+- Compares AWS state to Terraform configuration
+- Re-evaluates OPA policies against current state
+- Alerts on unauthorized manual changes
 
 ---
 
@@ -45,49 +208,45 @@ The application layer is intentionally minimal to focus on the DevSecOps practic
 
 ```
                                     INTERNET
-                                        |
-                                        v
-                            +-------------------+
-                            |   Route 53 (DNS)  |
-                            +-------------------+
-                                        |
-                                        v
-                            +-------------------+
-                            |   Public ALB      |
-                            |   (HTTPS/HTTP)    |
-                            +-------------------+
-                                        |
-                        +---------------+---------------+
-                        |               VPC             |
-                        |   +-------+       +-------+   |
-                        |   |Public |       |Public |   |
-                        |   |Subnet |       |Subnet |   |
-                        |   | AZ-a  |       | AZ-b  |   |
-                        |   +-------+       +-------+   |
-                        |       |               |       |
-                        |       +-------+-------+       |
-                        |               |               |
-                        |   +-----------------------+   |
-                        |   |    Frontend ECS       |   |
-                        |   |    (Fargate)          |   |
-                        |   +-----------------------+   |
-                        |               |               |
-                        |               v               |
-                        |   +-----------------------+   |
-                        |   |   Internal ALB        |   |
-                        |   +-----------------------+   |
-                        |               |               |
-                        |   +-----------------------+   |
-                        |   |    Backend ECS        |   |
-                        |   |    (Fargate)          |   |
-                        |   |    PRIVATE ONLY       |   |
-                        |   +-----------------------+   |
-                        |   +-------+       +-------+   |
-                        |   |Private|       |Private|   |
-                        |   |Subnet |       |Subnet |   |
-                        |   | AZ-a  |       | AZ-b  |   |
-                        |   +-------+       +-------+   |
-                        +-------------------------------+
+                                        │
+                                        ▼
+                            ┌───────────────────┐
+                            │   Public ALB      │
+                            │   (HTTP:80)       │
+                            └───────────────────┘
+                                        │
+                        ┌───────────────┴───────────────┐
+                        │             VPC               │
+                        │   ┌───────┐       ┌───────┐   │
+                        │   │Public │       │Public │   │
+                        │   │Subnet │       │Subnet │   │
+                        │   │ AZ-a  │       │ AZ-b  │   │
+                        │   └───────┘       └───────┘   │
+                        │       │               │       │
+                        │       └───────┬───────┘       │
+                        │               │               │
+                        │   ┌───────────────────────┐   │
+                        │   │   Frontend ECS        │   │
+                        │   │   (Fargate:3000)      │   │
+                        │   └───────────────────────┘   │
+                        │               │               │
+                        │               ▼               │
+                        │   ┌───────────────────────┐   │
+                        │   │   Internal ALB        │   │
+                        │   │   (HTTP:3001)         │   │
+                        │   └───────────────────────┘   │
+                        │               │               │
+                        │   ┌───────────────────────┐   │
+                        │   │   Backend ECS         │   │
+                        │   │   (Fargate:3001)      │   │
+                        │   │   PRIVATE ONLY        │   │
+                        │   └───────────────────────┘   │
+                        │   ┌───────┐       ┌───────┐   │
+                        │   │Private│       │Private│   │
+                        │   │Subnet │       │Subnet │   │
+                        │   │ AZ-a  │       │ AZ-b  │   │
+                        │   └───────┘       └───────┘   │
+                        └───────────────────────────────┘
 ```
 
 ### Security Architecture
@@ -96,12 +255,14 @@ The application layer is intentionally minimal to focus on the DevSecOps practic
 |-------|-----------------|----------------|
 | Network | Segmentation | Public/Private subnets, NAT Gateway |
 | Network | Access Control | Security groups with least privilege |
+| Network | Internal Routing | Backend only via Internal ALB |
 | Compute | Isolation | Fargate (no EC2 management required) |
-| Compute | Non-root | Containers run as non-privileged users |
+| Compute | Non-root | Containers run as UID 1001 |
 | Application | Headers | Helmet.js security headers |
 | Application | CORS | Restricted origin policy |
 | Data | Encryption | TLS in transit, S3 encryption at rest |
-| IAM | Least Privilege | Minimal permissions for each role |
+| IAM | Least Privilege | Minimal permissions per role |
+| CI/CD | OIDC | No long-lived credentials |
 
 ---
 
@@ -110,189 +271,132 @@ The application layer is intentionally minimal to focus on the DevSecOps practic
 ### Application
 
 | Component | Technology | Purpose |
-|-----------|------------|---------|
-| Frontend | Next.js 15, React 19, Tailwind CSS | Pipeline documentation and visualization |
-| Backend | Node.js 20, Express | Health endpoints and connectivity demo |
+|-----------|------------|---------| 
+| Frontend | Next.js 15, React 19, Tailwind CSS | Pipeline visualization and demo |
+| Backend | Node.js 20, Express, Helmet | Health endpoints with security headers |
 | Runtime | AWS ECS Fargate | Serverless container execution |
 
 ### Infrastructure
 
 | Component | Technology | Purpose |
 |-----------|------------|---------|
-| IaC | Terraform 1.5+ | Infrastructure definition |
+| IaC | Terraform 1.x | Infrastructure definition |
 | Cloud | AWS (us-west-2) | Cloud provider |
 | Networking | VPC, ALB, NAT | Network infrastructure |
 | Container Registry | GitHub Container Registry | Image storage |
 
 ### Security Tooling
 
-| Tool | Purpose |
-|------|---------|
-| Gitleaks | Secret detection in source code |
-| Trivy | Container vulnerability scanning |
-| Checkov | IaC security scanning |
-| OPA/Conftest | Custom policy enforcement |
-| ESLint | Code quality and security linting |
+| Tool | Category | Purpose |
+|------|----------|---------|
+| Gitleaks | Secret Detection | Scans for hardcoded credentials |
+| Trivy | Container Security | CVE scanning for images |
+| Checkov | IaC Security | 400+ policy checks for Terraform |
+| OPA/Conftest | Policy-as-Code | Custom organizational policies |
+| ESLint | SAST | JavaScript security linting |
+| npm audit | Dependency Security | Known vulnerability detection |
 
 ---
 
-## CI/CD Pipeline Overview
+## CI/CD Pipeline (14 Jobs)
 
-The pipeline consists of 13 distinct jobs organized into logical stages:
+The pipeline implements security at every stage with 14 distinct jobs:
 
 ```
-[Secret Scan] --> [Frontend Build] --> [Container Build] --> [Container Scan]
-                  [Backend Build]  -->
-             
-[Terraform Validate] --> [Checkov Scan] --> [OPA Check] --> [Terraform Plan]
-                                                                    |
-                                                                    v
-                                                          [Manual Approval]
-                                                                    |
-                                                                    v
-                                                          [Terraform Apply]
-                                                                    |
-                                                                    v
-                                                          [Drift Detection]
-
-[Container Build] --> [Update Image Tags]
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              SECURITY GATES                                  │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  [1. Secret Scan] ──► [2. Change Detection] ──┬──► [3. Frontend Build]     │
+│                                               │                             │
+│                                               └──► [4. Backend Build]       │
+│                                                          │                  │
+│                                                          ▼                  │
+│                                               [5. Container Build & Push]   │
+│                                                          │                  │
+│                                                          ▼                  │
+│                                               [6. Container Security Scan]  │
+│                                                                             │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                          INFRASTRUCTURE VALIDATION                          │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  [7. Terraform Validate] ──► [8. Checkov Scan] ──► [9. OPA Policy Check]   │
+│                                                          │                  │
+│                                                          ▼                  │
+│                                               [10. Terraform Plan]          │
+│                                                          │                  │
+│                                                          ▼                  │
+│                                               [11. Manual Approval] 🔒      │
+│                                                          │                  │
+│                                                          ▼                  │
+│                                               [12. Terraform Apply]         │
+│                                                          │                  │
+│                                                          ▼                  │
+│                                               [13. Drift Detection]         │
+│                                                          │                  │
+│                                                          ▼                  │
+│                                               [14. Update README/Tags]      │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Pipeline Jobs Summary
+### Job Descriptions
 
-1. **Secret Scanning** - Gitleaks scans for hardcoded credentials
-2. **Frontend Lint and Build** - ESLint and Next.js build verification
-3. **Backend Lint and Build** - ESLint and dependency audit
-4. **Container Build and Push** - Multi-arch Docker builds to GHCR
-5. **Container Security Scan** - Trivy vulnerability detection
-6. **Terraform Format and Validate** - Configuration syntax verification
-7. **IaC Security Scan** - Checkov policy evaluation
-8. **OPA Policy Enforcement** - Custom Rego policy validation
-9. **Terraform Plan** - Infrastructure change preview
-10. **Manual Approval** - Human review gate
-11. **Terraform Apply** - Infrastructure deployment
-12. **Drift Detection** - Post-deploy compliance check
-13. **Update Image Tags** - Automated version management
-
-For detailed information about each job and how to trigger failures for testing, see [CI-CD-JOBS-GUIDE.md](./CI-CD-JOBS-GUIDE.md).
-
-### Checkov Skipped Checks
-
-The following Checkov checks are skipped for this learning project (not production-critical):
-
-| Check ID | Description |
-|----------|-------------|
-| CKV_AWS_144 | S3 cross-region replication |
-| CKV_AWS_145 | S3 KMS encryption |
-| CKV2_AWS_28 | WAF protection for ALB |
-| CKV_AWS_18 | S3 access logging |
-| CKV_AWS_21 | S3 versioning |
-| CKV2_AWS_61 | S3 lifecycle configuration |
-| CKV2_AWS_62 | S3 event notifications |
-| CKV_AWS_103 | TLS 1.2 for load balancer |
-| CKV_AWS_378 | HTTP protocol on load balancer |
-| CKV2_AWS_20 | HTTP to HTTPS redirect |
-| CKV_AWS_130 | Public IP on subnets |
-| CKV2_AWS_12 | Default VPC security group |
-| CKV_AWS_355 | IAM policy resource constraints |
-| CKV_AWS_290 | IAM write access constraints |
-| CKV_AWS_2 | ALB HTTPS protocol |
-| CKV_AWS_158 | CloudWatch log encryption |
-| CKV_AWS_338 | CloudWatch log retention (1 year) |
-| CKV_AWS_289 | IAM permissions management |
-| CKV_AWS_260 | Port 80 ingress from 0.0.0.0/0 |
-| CKV_AWS_131 | ALB drop HTTP headers |
-| CKV_AWS_150 | Load balancer deletion protection |
-| CKV_AWS_91 | ELBv2 access logging |
+| # | Job | Security Function |
+|---|-----|------------------|
+| 1 | Secret Scanning | Detects hardcoded credentials before they reach the repo |
+| 2 | Change Detection | Smart filtering to skip unchanged components |
+| 3 | Frontend Lint & Build | SAST and compilation verification |
+| 4 | Backend Lint & Build | SAST and dependency audit |
+| 5 | Container Build | Multi-arch builds with security hardening |
+| 6 | Container Scan | Trivy CVE detection on built images |
+| 7 | Terraform Validate | Syntax and configuration validation |
+| 8 | Checkov Scan | 400+ IaC security policy checks |
+| 9 | OPA Policy Check | Custom organizational policy enforcement |
+| 10 | Terraform Plan | Preview infrastructure changes |
+| 11 | Manual Approval | Human gate before production deploy |
+| 12 | Terraform Apply | Controlled infrastructure deployment |
+| 13 | Drift Detection | Post-deploy compliance verification |
+| 14 | Update Outputs | Automated documentation and version updates |
 
 ---
 
-## Security Controls
+## Security Controls by Phase
 
-### Pre-Commit
+### 🔍 Pre-Commit / Push
 
-- Secret detection prevents credentials from entering the repository
-- All branches protected with required reviews
+- Gitleaks secret detection
+- Branch protection rules
+- Required code reviews
 
-### Build Phase
+### 🔨 Build Phase
 
-- Static code analysis with ESLint
-- Dependency vulnerability scanning with npm audit
-- Container image scanning with Trivy
+- ESLint static analysis with security rules
+- npm audit for dependency vulnerabilities
+- Multi-stage Docker builds (minimal attack surface)
+- Non-root container users
 
-### Infrastructure Phase
+### 🏗️ Infrastructure Phase
 
-- Terraform validation ensures configuration syntax
-- Checkov evaluates 400+ security policies
-- Custom OPA policies enforce organizational standards
+- Terraform format and validation
+- Checkov security policy evaluation
+- Custom OPA policy enforcement
+- Terraform plan review
 
-### Deployment Phase
+### 🚀 Deployment Phase
 
-- Manual approval required for production
+- Manual approval with audit trail
 - GitHub Environments with required reviewers
-- Audit trail of all approvals
+- OIDC authentication (no stored credentials)
+- Least privilege IAM roles
 
-### Post-Deployment
+### ✅ Post-Deployment
 
-- Drift detection identifies unauthorized changes
-- OPA policies re-evaluated against current state
-- CloudWatch monitoring and alerting
-
----
-
-## Deployment Flow
-
-1. **Code Push**: Developer pushes code to main branch
-2. **Security Scan**: Gitleaks checks for secrets
-3. **Build and Test**: Applications built and linted
-4. **Container Build**: Docker images created and pushed
-5. **Container Scan**: Trivy scans for vulnerabilities
-6. **IaC Validation**: Terraform and Checkov verify infrastructure
-7. **Policy Check**: OPA evaluates custom policies
-8. **Plan Generation**: Terraform plan created and stored
-9. **Approval Wait**: Pipeline pauses for human review
-10. **Deployment**: Approved changes applied to AWS
-11. **Verification**: Drift detection confirms compliance
-
----
-
-## Manual Approval Process
-
-The pipeline includes a mandatory human review gate before production deployment:
-
-1. Navigate to the Actions tab in GitHub
-2. Locate the running workflow
-3. Click on the "Manual Approval" job
-4. Review the Terraform plan in the previous job
-5. Click "Approve" or "Reject"
-6. Deployment proceeds only after approval
-
-### Configuring Approvers
-
-1. Go to Repository Settings
-2. Navigate to Environments
-3. Select or create "production" environment
-4. Add required reviewers
-5. Optionally configure deployment branches and wait timer
-
----
-
-## Drift Detection
-
-Post-deployment drift detection ensures infrastructure remains compliant:
-
-- Runs immediately after successful deployment
-- Compares actual AWS state against Terraform configuration
-- Re-evaluates OPA policies against current state
-- Alerts if unauthorized changes detected
-- Creates audit trail of infrastructure state
-
-### Drift Causes
-
-- Manual changes in AWS Console
-- Changes by other automation tools
-- AWS service updates or deprecations
-- Resource modifications outside Terraform
+- Drift detection comparing state vs. config
+- OPA policy re-evaluation
+- CloudWatch monitoring
+- Automated documentation updates
 
 ---
 
@@ -302,14 +406,14 @@ Post-deployment drift detection ensures infrastructure remains compliant:
 
 - Node.js 20+
 - Docker and Docker Compose
-- Terraform 1.5+ (for infrastructure testing)
+- Terraform 1.5+ (for infrastructure)
 - AWS CLI configured (for deployment)
 
 ### Running the Applications
 
 ```bash
 # Clone the repository
-git clone https://github.com/himanm/DevOps-Project-11.git
+git clone https://github.com/HimanM/DevOps-Project-11.git
 cd DevOps-Project-11
 
 # Backend
@@ -337,37 +441,20 @@ docker run -p 3001:3001 devsecops-backend
 docker run -p 3000:3000 -e NEXT_PUBLIC_BACKEND_URL=http://localhost:3001 devsecops-frontend
 ```
 
-### Testing Terraform Locally
+### Testing Security Tools Locally
 
 ```bash
+# Secret scanning
+docker run -v $(pwd):/path zricethezav/gitleaks detect --source /path
+
+# Container scanning
+trivy image devsecops-frontend:latest
+
+# IaC scanning
 cd terraform
+checkov -d .
 
-# Initialize
-terraform init -backend=false
-
-# Validate
-terraform validate
-
-# Format check
-terraform fmt -check
-
-# Plan (requires AWS credentials)
-terraform plan -var="frontend_image=test" -var="backend_image=test"
-```
-
-### Testing OPA Policies
-
-```bash
-# Install conftest
-# https://www.conftest.dev/install/
-
-# Generate plan JSON
-cd terraform
-terraform init -backend=false
-terraform plan -out=tfplan
-terraform show -json tfplan > tfplan.json
-
-# Run policies
+# OPA policies
 conftest test tfplan.json --policy ../policies/
 ```
 
@@ -377,142 +464,92 @@ conftest test tfplan.json --policy ../policies/
 
 ```
 devops-project-11/
-|
-|-- frontend/                    # Next.js frontend application
-|   |-- src/
-|   |   |-- app/                 # App Router pages
-|   |   |-- components/          # React components
-|   |-- Dockerfile               # Multi-stage build
-|   |-- package.json
-|
-|-- backend/                     # Express backend API
-|   |-- src/
-|   |   |-- index.js             # Server entry point
-|   |-- Dockerfile               # Multi-stage build
-|   |-- package.json
-|
-|-- terraform/                   # Infrastructure as Code
-|   |-- providers.tf             # Provider configuration
-|   |-- variables.tf             # Input variables
-|   |-- vpc.tf                   # VPC and networking
-|   |-- security-groups.tf       # Security groups
-|   |-- iam.tf                   # IAM roles and policies
-|   |-- alb.tf                   # Load balancers
-|   |-- ecs.tf                   # ECS cluster and services
-|   |-- outputs.tf               # Output values
-|
-|-- policies/                    # OPA/Rego policies
-|   |-- no_public_backend.rego   # Backend isolation policy
-|   |-- no_open_security_groups.rego
-|   |-- mandatory_tags.rego      # Tagging requirements
-|
-|-- .github/
-|   |-- workflows/
-|       |-- devsecops-pipeline.yml
-|
-|-- README.md                    # This file
-|-- CI-CD-JOBS-GUIDE.md          # Pipeline job documentation
+│
+├── frontend/                    # Next.js frontend application
+│   ├── src/
+│   │   ├── app/                 # App Router pages
+│   │   └── components/          # React components
+│   ├── Dockerfile               # Multi-stage build (non-root)
+│   └── .dockerignore
+│
+├── backend/                     # Express backend API
+│   ├── src/
+│   │   └── index.js             # Server with Helmet security
+│   ├── Dockerfile               # Multi-stage build (non-root)
+│   └── .dockerignore
+│
+├── terraform/                   # Infrastructure as Code
+│   ├── providers.tf             # AWS provider config
+│   ├── variables.tf             # Input variables
+│   ├── vpc.tf                   # Network infrastructure
+│   ├── security-groups.tf       # Least privilege network rules
+│   ├── iam.tf                   # Least privilege IAM roles
+│   ├── alb.tf                   # Load balancers (public + internal)
+│   ├── ecs.tf                   # ECS cluster and services
+│   └── outputs.tf               # Output values
+│
+├── policies/                    # OPA/Rego policies
+│   ├── no_public_backend.rego   # Backend isolation enforcement
+│   ├── no_open_security_groups.rego
+│   └── mandatory_tags.rego      # Tagging requirements
+│
+├── .github/
+│   └── workflows/
+│       └── devsecops-pipeline.yml  # 14-job security pipeline
+│
+├── README.md                    # This file (auto-updated)
+└── CI-CD-JOBS-GUIDE.md          # Detailed job documentation
 ```
 
 ---
 
 ## Configuration
 
-### Environment Variables
+### GitHub Secrets Required
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `AWS_REGION` | AWS deployment region | us-west-2 |
-| `NEXT_PUBLIC_BACKEND_URL` | Backend API URL | http://localhost:3001 |
-| `NODE_ENV` | Environment mode | development |
-| `PORT` | Backend port | 3001 |
+| Secret | Description |
+|--------|-------------|
+| `AWS_ROLE_ARN` | IAM role ARN for OIDC authentication |
+| `GITLEAKS_LICENSE` | (Optional) Gitleaks enterprise license |
 
-### GitHub Secrets Configuration
+### Setting Up OIDC Authentication
 
-To enable the pipeline to interact with AWS, you must configure GitHub Secrets.
+1. Bootstrap infrastructure locally:
+   ```bash
+   cd terraform
+   terraform init
+   terraform apply
+   ```
 
-**1. Create the IAM Role for GitHub Actions**
+2. Copy the `github_actions_role_arn` output
 
-Since the Terraform code manages the IAM role itself, you first need to bootstrap the environment or run Terraform locally once to create the role.
+3. Add to GitHub Secrets:
+   - Go to Repository Settings → Secrets and variables → Actions
+   - Add `AWS_ROLE_ARN` with the role ARN value
 
-```bash
-cd terraform
-terraform init
-terraform apply
-```
+### Configure Manual Approval
 
-Note the output value `github_actions_role_arn`:
-
-```
-github_actions_role_arn = "arn:aws:iam::123456789012:role/devsecops-project-11-github-actions-role"
-```
-
-**2. Add Secrets to GitHub**
-
-1. Go to your GitHub repository
-2. Navigate to **Settings** > **Secrets and variables** > **Actions**
-3. Click **New repository secret**
-4. Add the following secrets:
-
-| Secret | Description | Value |
-|--------|-------------|-------|
-| `AWS_ROLE_ARN` | IAM role for OIDC authentication | The output value from step 1 (e.g. `arn:aws:iam::...`) |
-| `GITLEAKS_LICENSE` | (Optional) Gitleaks license | Your Gitleaks license key |
-
-### Terraform Variables
-
-See `terraform/terraform.tfvars.example` for all available configuration options.
+1. Go to Repository Settings → Environments
+2. Create environment named `production`
+3. Enable "Required reviewers" and add yourself
+4. (Optional) Add deployment branch rules
 
 ---
 
 ## Infrastructure Teardown
 
-To completely destroy the AWS infrastructure and clean up resources:
-
-### Step 1: Destroy Infrastructure
-
 ```bash
+# Destroy all resources
 cd terraform
 terraform destroy -auto-approve
+
+# Delete S3 state bucket
+aws s3 rm s3://devsecops-project-11-tfstate --recursive
+aws s3 rb s3://devsecops-project-11-tfstate
+
+# Clean local files
+rm -rf .terraform/ terraform.tfstate*
 ```
-
-This will remove all AWS resources including:
-- ECS cluster and services
-- Load balancers
-- VPC and networking
-- IAM roles
-- S3 buckets
-- CloudWatch log groups
-
-### Step 2: Delete State Files
-
-After destroy completes, delete the S3 state bucket and local files:
-
-```bash
-# Delete S3 state bucket (must be emptied first)
-aws s3 rm s3://devsecops-project-11-tfstate --recursive --region us-west-2
-aws s3 rb s3://devsecops-project-11-tfstate --region us-west-2
-
-# Delete local Terraform files
-rm -rf .terraform/
-rm -f .terraform.lock.hcl
-rm -f tfplan
-rm -f terraform.tfstate*
-```
-
-### Step 3: Clean Up GitHub Packages (Optional)
-
-Delete container images from GHCR:
-
-1. Go to your GitHub profile
-2. Navigate to **Packages**
-3. Find `devops-project-11-frontend` and `devops-project-11-backend`
-4. Click on each package and select **Delete package**
-
-### Step 4: Remove GitHub Secrets (Optional)
-
-1. Go to Repository **Settings** > **Secrets and variables** > **Actions**
-2. Delete the `AWS_ROLE_ARN` secret
 
 ---
 
@@ -520,16 +557,15 @@ Delete container images from GHCR:
 
 1. Fork the repository
 2. Create a feature branch
-3. Make changes following existing patterns
-4. Ensure all security checks pass
-5. Submit a pull request
+3. Ensure all security checks pass locally
+4. Submit a pull request
 
-All contributions must pass the full CI/CD pipeline including security scans.
+All contributions must pass the full 14-job security pipeline.
 
 ---
 
 ## License
 
-This project is licensed under the MIT License. See [LICENSE](./LICENSE) for details.
+MIT License - See [LICENSE](./LICENSE) for details.
 
-This project is intended for educational purposes and DevSecOps demonstration. Feel free to fork, modify, and learn from the implementation.
+This project is for educational purposes demonstrating DevSecOps best practices. Fork, learn, and adapt for your own needs!

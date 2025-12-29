@@ -546,3 +546,85 @@ jobs:
           git add terraform/variables.tf
           git diff --staged --quiet || git commit -m "chore: update image tags to ${{ needs.container-build-push.outputs.short-sha }} [skip ci]"
           git push
+
+  # ===========================================
+  # Stage 14: Update README with Deployment Info
+  # ===========================================
+  update-readme-outputs:
+    name: Update README Outputs
+    runs-on: ubuntu-latest
+    needs: [terraform-apply]
+    if: always() && needs.terraform-apply.result == 'success'
+    defaults:
+      run:
+        working-directory: terraform
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "latest"
+          terraform_wrapper: false
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Get Terraform Outputs
+        id: outputs
+        run: |
+          # Get outputs as JSON
+          FRONTEND_URL=$(terraform output -raw frontend_url 2>/dev/null || echo "Deployment pending")
+          ECS_CLUSTER=$(terraform output -raw ecs_cluster_name 2>/dev/null || echo "Not deployed")
+          PUBLIC_ALB=$(terraform output -raw public_alb_dns 2>/dev/null || echo "Not deployed")
+
+          echo "frontend_url=${FRONTEND_URL}" >> $GITHUB_OUTPUT
+          echo "ecs_cluster=${ECS_CLUSTER}" >> $GITHUB_OUTPUT
+          echo "public_alb=${PUBLIC_ALB}" >> $GITHUB_OUTPUT
+          echo "timestamp=$(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_OUTPUT
+
+      - name: Update README with Deployment Info
+        run: |
+          cd ..
+
+          # Create the new deployment section content
+          cat > /tmp/deployment_section.md << 'EOF'
+          <!-- DEPLOYMENT_OUTPUTS_START -->
+          ## Live Deployment
+
+          > **Infrastructure is deployed and running!**
+
+          | Resource | Value |
+          |----------|-------|
+          | **Frontend URL** | [${{ steps.outputs.outputs.frontend_url }}](${{ steps.outputs.outputs.frontend_url }}) |
+          | **ECS Cluster** | `${{ steps.outputs.outputs.ecs_cluster }}` |
+          | **AWS Region** | `${{ env.AWS_REGION }}` |
+          | **Last Deployed** | ${{ steps.outputs.outputs.timestamp }} |
+
+          <!-- DEPLOYMENT_OUTPUTS_END -->
+          EOF
+
+          # Use sed to replace the section between markers
+          sed -i '/<!-- DEPLOYMENT_OUTPUTS_START -->/,/<!-- DEPLOYMENT_OUTPUTS_END -->/{ 
+            r /tmp/deployment_section.md
+            d
+          }' README.md
+
+      - name: Commit and push README
+        run: |
+          cd ..
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+
+          git add README.md
+          git diff --staged --quiet || git commit -m "docs: update deployment outputs [skip ci]"
+          git push

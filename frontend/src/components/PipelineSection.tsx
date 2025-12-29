@@ -15,7 +15,9 @@ import {
     FaRocket,
     FaSyncAlt,
     FaKey,
-    FaBalanceScale
+    FaBalanceScale,
+    FaCodeBranch,
+    FaFileAlt
 } from "react-icons/fa";
 
 interface PipelineStage {
@@ -43,6 +45,20 @@ const pipelineStages: PipelineStage[] = [
             "Prevents credentials from reaching production",
         ],
         failureExample: "Add AWS_SECRET_KEY=abc123 to any file",
+    },
+    {
+        id: "change-detection",
+        name: "Change Detection",
+        description: "Smart filtering to only build/deploy changed components",
+        tool: "dorny/paths-filter",
+        icon: <FaCodeBranch className="w-6 h-6" />,
+        color: "amber",
+        details: [
+            "Detects changes in frontend/ directory",
+            "Detects changes in backend/ directory",
+            "Skips builds when no relevant changes",
+        ],
+        failureExample: "N/A - This job only filters, it doesn't fail",
     },
     {
         id: "frontend-build",
@@ -198,6 +214,20 @@ const pipelineStages: PipelineStage[] = [
         ],
         failureExample: "Manually change a resource in AWS console",
     },
+    {
+        id: "update-outputs",
+        name: "Update README & Tags",
+        description: "Automated documentation and version management",
+        tool: "GitHub Actions Bot",
+        icon: <FaFileAlt className="w-6 h-6" />,
+        color: "slate",
+        details: [
+            "Updates image tags in Terraform variables",
+            "Updates README with deployment outputs",
+            "Adds clickable frontend URL to README",
+        ],
+        failureExample: "Git push permissions revoked",
+    },
 ];
 
 export default function PipelineSection() {
@@ -217,6 +247,8 @@ export default function PipelineSection() {
             yellow: { bg: "bg-yellow-500", border: "border-yellow-500/30", text: "text-yellow-400", bgLight: "bg-yellow-500/10" },
             emerald: { bg: "bg-emerald-500", border: "border-emerald-500/30", text: "text-emerald-400", bgLight: "bg-emerald-500/10" },
             rose: { bg: "bg-rose-500", border: "border-rose-500/30", text: "text-rose-400", bgLight: "bg-rose-500/10" },
+            amber: { bg: "bg-amber-500", border: "border-amber-500/30", text: "text-amber-400", bgLight: "bg-amber-500/10" },
+            slate: { bg: "bg-slate-500", border: "border-slate-500/30", text: "text-slate-400", bgLight: "bg-slate-500/10" },
         };
         return colorMap[color] || colorMap.blue;
     };
@@ -226,7 +258,7 @@ export default function PipelineSection() {
             <div className="text-center mb-12">
                 <h2 className="section-heading">CI/CD Pipeline</h2>
                 <p className="text-slate-400 max-w-2xl mx-auto">
-                    A comprehensive security-first pipeline with 12 stages, each implemented as an independent
+                    A comprehensive security-first pipeline with 14 stages, each implemented as an independent
                     GitHub Actions job for maximum visibility and control.
                 </p>
             </div>

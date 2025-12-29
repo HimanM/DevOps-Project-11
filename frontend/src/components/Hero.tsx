@@ -1,8 +1,24 @@
 "use client";
 
+import { RiShieldKeyholeLine } from "react-icons/ri";
+import { FaDocker } from "react-icons/fa";
+import { HiClipboardDocumentCheck } from "react-icons/hi2";
+import { BsBricks } from "react-icons/bs";
+import { MdApproval } from "react-icons/md";
+import { TbCirclesRelation } from "react-icons/tb";
+
 export default function Hero() {
+    const features = [
+        { icon: RiShieldKeyholeLine, label: "Secret Scanning", color: "text-amber-400" },
+        { icon: FaDocker, label: "Container Security", color: "text-blue-400" },
+        { icon: HiClipboardDocumentCheck, label: "Policy-as-Code", color: "text-violet-400" },
+        { icon: BsBricks, label: "IaC Security", color: "text-orange-400" },
+        { icon: MdApproval, label: "Manual Approval", color: "text-emerald-400" },
+        { icon: TbCirclesRelation, label: "Drift Detection", color: "text-cyan-400" },
+    ];
+
     return (
-        <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
+        <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden pt-20 pb-16">
             {/* Animated Background Elements */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-devsec-500/20 rounded-full blur-3xl animate-pulse-slow" />
@@ -20,6 +36,13 @@ export default function Hero() {
                         </span>
                         <span className="text-sm font-medium text-slate-300">
                             Enterprise-Grade Security Pipeline
+                        </span>
+                    </div>
+
+                    {/* Project Tag */}
+                    <div className="inline-flex items-center gap-2 px-3 py-1 mb-6 ml-3 rounded-md bg-devsec-600/30 border border-devsec-500/50 animate-in">
+                        <span className="text-xs font-mono font-semibold text-devsec-400">
+                            DevOps-Project-11
                         </span>
                     </div>
 
@@ -55,41 +78,37 @@ export default function Hero() {
 
                     {/* Feature Pills */}
                     <div className="flex flex-wrap items-center justify-center gap-3 mt-16 animate-in stagger-4">
-                        {[
-                            { icon: "🔒", label: "Secret Scanning" },
-                            { icon: "🐳", label: "Container Security" },
-                            { icon: "📋", label: "Policy-as-Code" },
-                            { icon: "🏗️", label: "IaC Security" },
-                            { icon: "✅", label: "Manual Approval" },
-                            { icon: "🔍", label: "Drift Detection" },
-                        ].map((feature) => (
-                            <div
-                                key={feature.label}
-                                className="flex items-center gap-2 px-4 py-2 rounded-full glass text-sm text-slate-300 hover:border-devsec-500/50 transition-all cursor-default"
-                            >
-                                <span>{feature.icon}</span>
-                                <span>{feature.label}</span>
-                            </div>
-                        ))}
+                        {features.map((feature) => {
+                            const IconComponent = feature.icon;
+                            return (
+                                <div
+                                    key={feature.label}
+                                    className="flex items-center gap-2 px-4 py-2 rounded-full glass text-sm text-slate-300 hover:border-devsec-500/50 transition-all cursor-default"
+                                >
+                                    <IconComponent className={`w-4 h-4 ${feature.color}`} />
+                                    <span>{feature.label}</span>
+                                </div>
+                            );
+                        })}
                     </div>
                 </div>
+            </div>
 
-                {/* Scroll Indicator */}
-                <div className="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce">
-                    <svg
-                        className="w-6 h-6 text-slate-400"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                    >
-                        <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M19 14l-7 7m0 0l-7-7m7 7V3"
-                        />
-                    </svg>
-                </div>
+            {/* Scroll Indicator - Now outside container and positioned at bottom of section */}
+            <div className="mt-12 animate-bounce">
+                <svg
+                    className="w-6 h-6 text-slate-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                >
+                    <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 14l-7 7m0 0l-7-7m7 7V3"
+                    />
+                </svg>
             </div>
         </section>
     );

@@ -13,10 +13,11 @@ frontend_image = "ghcr.io/himanm/devops-project-11-frontend:latest"
 backend_image  = "ghcr.io/himanm/devops-project-11-backend:latest"
 
 # Task Resources
-frontend_cpu    = 256
-frontend_memory = 512
-backend_cpu     = 256
-backend_memory  = 512
+# Task Resources
+frontend_cpu    = 512
+frontend_memory = 1024
+backend_cpu     = 512
+backend_memory  = 1024
 
 # Scaling
 frontend_desired_count = 2
