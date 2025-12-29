@@ -7,13 +7,13 @@ A production-grade DevSecOps demonstration platform implementing enterprise-leve
 ---
 
 <!-- DEPLOYMENT_OUTPUTS_START -->
-## 🚀 Live Deployment
+## Live Deployment
 
 > **Note:** This section is automatically updated by the CI/CD pipeline after each successful deployment.
 
 | Resource | Value |
 |----------|-------|
-| **🌐 Frontend URL** | *Deployment pending* |
+| **Frontend URL** | *Deployment pending* |
 | **ECS Cluster** | devsecops-project-11-cluster |
 | **AWS Region** | us-west-2 |
 | **Last Deployed** | Not yet deployed |

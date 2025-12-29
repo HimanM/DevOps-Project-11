@@ -136,8 +136,7 @@ jobs:
   container-build-push:
     name: Container Build & Push
     runs-on: ubuntu-latest
-    needs: [frontend-lint-build, backend-lint-build, changes]
-    if: needs.changes.outputs.any == 'true'
+    needs: [frontend-lint-build, backend-lint-build]
     outputs:
       frontend-image: ${{ steps.meta-frontend.outputs.tags }}
       backend-image: ${{ steps.meta-backend.outputs.tags }}
@@ -361,7 +360,6 @@ jobs:
         container-security-scan,
         iac-security-scan,
         opa-policy-check,
-        changes,
         container-build-push,
       ]
     if: "always() && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' && (needs.container-security-scan.result == 'success' || needs.container-security-scan.result == 'skipped')"
@@ -391,16 +389,12 @@ jobs:
       - name: Terraform Plan
         id: plan
         env:
-          ANY_CHANGES: ${{ needs.changes.outputs.any }}
           FRONTEND_TAG: ${{ needs.container-build-push.outputs.short-sha }}
         run: |
-          PLAN_CMD="terraform plan -out=tfplan -detailed-exitcode"
-
-          if [ "$ANY_CHANGES" == "true" ]; then
-            PLAN_CMD="$PLAN_CMD -var=\"frontend_image=${{ env.FRONTEND_IMAGE }}:$FRONTEND_TAG\" -var=\"backend_image=${{ env.BACKEND_IMAGE }}:$FRONTEND_TAG\""
-          fi
-
-          eval $PLAN_CMD || echo "exitcode=$?" >> $GITHUB_OUTPUT
+          # Always use the new image tags since container-build-push now runs unconditionally
+          terraform plan -out=tfplan -detailed-exitcode \
+            -var="frontend_image=${{ env.FRONTEND_IMAGE }}:$FRONTEND_TAG" \
+            -var="backend_image=${{ env.BACKEND_IMAGE }}:$FRONTEND_TAG" || echo "exitcode=$?" >> $GITHUB_OUTPUT
 
       - name: Upload Plan
         uses: actions/upload-artifact@v4
@@ -520,8 +514,8 @@ jobs:
   update-image-tags:
     name: Update Image Tags
     runs-on: ubuntu-latest
-    needs: [container-build-push, changes]
-    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' && needs.changes.outputs.any == 'true'
+    needs: [container-build-push]
+    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
