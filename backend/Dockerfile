@@ -44,11 +44,8 @@ COPY --from=deps --chown=expressjs:nodejs /app/node_modules ./node_modules
 
 # Copy application source (explicitly copy everything, then the src folder)
 COPY --chown=expressjs:nodejs . .
-COPY --chown=expressjs:nodejs src/ ./src/
-
-# Security: Set proper permissions
-RUN chmod -R 550 /app && \
-    chmod -R 770 /app/node_modules
+# Copy application source (explicitly copy everything)
+COPY --chown=expressjs:nodejs . .
 
 # Environment configuration
 ENV NODE_ENV=production

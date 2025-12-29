@@ -1,6 +1,6 @@
 {
     "name": "devsecops-frontend",
-    "version": "1.0.0",
+    "version": "0.1.1",
     "description": "DevSecOps demonstration frontend with pipeline visualization",
     "private": true,
     "scripts": {
