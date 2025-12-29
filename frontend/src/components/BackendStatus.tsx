@@ -38,15 +38,45 @@ export default function BackendStatus() {
     const [error, setError] = useState<string | null>(null);
     const [lastChecked, setLastChecked] = useState<Date | null>(null);
 
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3001";
+    // For production: use the internal ALB via server-side API route
+    // For development: use localhost directly
+    const getBackendUrl = () => {
+        if (typeof window === 'undefined') return 'http://localhost:3001';
+
+        // Check if we're in production (AWS ECS)
+        if (window.location.hostname.includes('elb.amazonaws.com') ||
+            window.location.hostname.includes('amazonaws.com') ||
+            process.env.NODE_ENV === 'production') {
+            // In production, use relative path to call our Next.js API proxy
+            return '/api/backend';
+        }
+
+        // Development - call backend directly
+        return process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+    };
+
+    const backendUrl = getBackendUrl();
 
     const checkBackend = useCallback(async () => {
         setStatus("connecting");
         setError(null);
 
         try {
+            const isProduction = typeof window !== 'undefined' &&
+                (window.location.hostname.includes('amazonaws.com') ||
+                    window.location.hostname.includes('elb.amazonaws.com'));
+
+            // Determine the correct URL format
+            const healthUrl = isProduction
+                ? '/api/backend?endpoint=health'
+                : `${backendUrl}/health`;
+
+            const helloUrl = isProduction
+                ? '/api/backend?endpoint=hello'
+                : `${backendUrl}/hello`;
+
             // Check health endpoint first
-            const healthRes = await fetch(`${backendUrl}/health`, {
+            const healthRes = await fetch(healthUrl, {
                 method: "GET",
                 headers: { "Content-Type": "application/json" },
                 signal: AbortSignal.timeout(5000),
@@ -60,7 +90,7 @@ export default function BackendStatus() {
             setHealthData(health);
 
             // Then check hello endpoint
-            const helloRes = await fetch(`${backendUrl}/hello`, {
+            const helloRes = await fetch(helloUrl, {
                 method: "GET",
                 headers: { "Content-Type": "application/json" },
                 signal: AbortSignal.timeout(5000),

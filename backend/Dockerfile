@@ -41,9 +41,9 @@ WORKDIR /app
 # Copy dependencies from deps stage
 COPY --from=deps --chown=expressjs:nodejs /app/node_modules ./node_modules
 
-# Copy application source
-COPY --chown=expressjs:nodejs src ./src
-COPY --chown=expressjs:nodejs package*.json ./
+# Copy application source (explicitly copy everything, then the src folder)
+COPY --chown=expressjs:nodejs . .
+COPY --chown=expressjs:nodejs src/ ./src/
 
 # Security: Set proper permissions
 RUN chmod -R 550 /app && \
@@ -61,7 +61,7 @@ EXPOSE 3001
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:3001/health || exit 1
+    CMD wget --no-verbose --tries=1 --spider http://localhost:3001/health || exit 1
 
 # Use dumb-init to handle signals properly
 ENTRYPOINT ["dumb-init", "--"]
