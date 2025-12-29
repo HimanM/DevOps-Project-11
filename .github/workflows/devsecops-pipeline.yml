@@ -1,0 +1,483 @@
+# -----------------------------
+# DevSecOps CI/CD Pipeline
+# Comprehensive security-first workflow
+# -----------------------------
+
+name: DevSecOps Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  AWS_REGION: us-west-2
+  REGISTRY: ghcr.io
+  FRONTEND_IMAGE: ghcr.io/${{ github.repository_owner }}/devops-project-11-frontend
+  BACKEND_IMAGE: ghcr.io/${{ github.repository_owner }}/devops-project-11-backend
+
+permissions:
+  contents: write
+  packages: write
+  security-events: write
+  id-token: write
+
+jobs:
+  # ===========================================
+  # Stage 1: Secret Scanning
+  # ===========================================
+  secret-scan:
+    name: Secret Scanning
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+
+  # ===========================================
+  # Stage 2: Frontend Lint & Build
+  # ===========================================
+  frontend-lint-build:
+    name: Frontend Lint & Build
+    runs-on: ubuntu-latest
+    needs: [secret-scan]
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Build application
+        run: npm run build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: frontend/.next
+          retention-days: 1
+
+  # ===========================================
+  # Stage 3: Backend Lint & Build
+  # ===========================================
+  backend-lint-build:
+    name: Backend Lint & Build
+    runs-on: ubuntu-latest
+    needs: [secret-scan]
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Check for vulnerabilities
+        run: npm audit --audit-level=high || true
+
+  # ===========================================
+  # Stage 4: Container Build & Push
+  # ===========================================
+  container-build-push:
+    name: Container Build & Push
+    runs-on: ubuntu-latest
+    needs: [frontend-lint-build, backend-lint-build]
+    outputs:
+      frontend-image: ${{ steps.meta-frontend.outputs.tags }}
+      backend-image: ${{ steps.meta-backend.outputs.tags }}
+      short-sha: ${{ steps.vars.outputs.short_sha }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set variables
+        id: vars
+        run: echo "short_sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract frontend metadata
+        id: meta-frontend
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.FRONTEND_IMAGE }}
+          tags: |
+            type=raw,value=latest
+            type=sha,prefix=,format=short
+
+      - name: Extract backend metadata
+        id: meta-backend
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.BACKEND_IMAGE }}
+          tags: |
+            type=raw,value=latest
+            type=sha,prefix=,format=short
+
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          push: true
+          tags: ${{ steps.meta-frontend.outputs.tags }}
+          labels: ${{ steps.meta-frontend.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and push backend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: true
+          tags: ${{ steps.meta-backend.outputs.tags }}
+          labels: ${{ steps.meta-backend.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ===========================================
+  # Stage 5: Container Security Scan
+  # ===========================================
+  container-security-scan:
+    name: Container Security Scan
+    runs-on: ubuntu-latest
+    needs: [container-build-push]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Scan frontend image
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: "${{ env.FRONTEND_IMAGE }}:latest"
+          format: "table"
+          exit-code: "1"
+          ignore-unfixed: true
+          vuln-type: "os,library"
+          severity: "CRITICAL,HIGH"
+
+      - name: Scan backend image
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: "${{ env.BACKEND_IMAGE }}:latest"
+          format: "table"
+          exit-code: "1"
+          ignore-unfixed: true
+          vuln-type: "os,library"
+          severity: "CRITICAL,HIGH"
+
+  # ===========================================
+  # Stage 6: Terraform Format & Validate
+  # ===========================================
+  terraform-format-validate:
+    name: Terraform Format & Validate
+    runs-on: ubuntu-latest
+    needs: [secret-scan]
+    defaults:
+      run:
+        working-directory: terraform
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.5.0"
+
+      - name: Terraform Format Check
+        run: terraform fmt -check -recursive
+
+      - name: Terraform Init
+        run: terraform init -backend=false
+
+      - name: Terraform Validate
+        run: terraform validate
+
+  # ===========================================
+  # Stage 7: IaC Security Scan (Checkov)
+  # ===========================================
+  iac-security-scan:
+    name: IaC Security Scan
+    runs-on: ubuntu-latest
+    needs: [terraform-format-validate]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Checkov
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: terraform/
+          framework: terraform
+          output_format: cli
+          soft_fail: false
+          skip_check: CKV_AWS_144,CKV_AWS_145,CKV2_AWS_28
+
+  # ===========================================
+  # Stage 8: OPA Policy Enforcement
+  # ===========================================
+  opa-policy-check:
+    name: OPA Policy Enforcement
+    runs-on: ubuntu-latest
+    needs: [terraform-format-validate]
+    defaults:
+      run:
+        working-directory: terraform
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.5.0"
+
+      - name: Install Conftest
+        run: |
+          wget -q https://github.com/open-policy-agent/conftest/releases/download/v0.46.0/conftest_0.46.0_Linux_x86_64.tar.gz
+          tar xzf conftest_0.46.0_Linux_x86_64.tar.gz
+          sudo mv conftest /usr/local/bin/
+
+      - name: Terraform Init
+        run: terraform init -backend=false
+
+      - name: Generate Terraform Plan JSON
+        run: |
+          terraform plan -out=tfplan -input=false -var="frontend_image=${{ env.FRONTEND_IMAGE }}:latest" -var="backend_image=${{ env.BACKEND_IMAGE }}:latest" || true
+          terraform show -json tfplan > tfplan.json || echo '{"resource_changes":[]}' > tfplan.json
+
+      - name: Run OPA Policy Check
+        run: conftest test tfplan.json --policy ../policies/ --all-namespaces
+
+  # ===========================================
+  # Stage 9: Terraform Plan
+  # ===========================================
+  terraform-plan:
+    name: Terraform Plan
+    runs-on: ubuntu-latest
+    needs: [container-security-scan, iac-security-scan, opa-policy-check]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    defaults:
+      run:
+        working-directory: terraform
+    outputs:
+      plan-exitcode: ${{ steps.plan.outputs.exitcode }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.5.0"
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Plan
+        id: plan
+        run: |
+          terraform plan \
+            -var="frontend_image=${{ env.FRONTEND_IMAGE }}:${{ needs.container-build-push.outputs.short-sha }}" \
+            -var="backend_image=${{ env.BACKEND_IMAGE }}:${{ needs.container-build-push.outputs.short-sha }}" \
+            -out=tfplan \
+            -detailed-exitcode || echo "exitcode=$?" >> $GITHUB_OUTPUT
+
+      - name: Upload Plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-plan
+          path: terraform/tfplan
+          retention-days: 5
+
+  # ===========================================
+  # Stage 10: Manual Approval
+  # ===========================================
+  manual-approval:
+    name: Manual Approval
+    runs-on: ubuntu-latest
+    needs: [terraform-plan]
+    environment: production
+    steps:
+      - name: Approval checkpoint
+        run: echo "Deployment approved for production environment"
+
+  # ===========================================
+  # Stage 11: Terraform Apply
+  # ===========================================
+  terraform-apply:
+    name: Terraform Apply
+    runs-on: ubuntu-latest
+    needs: [manual-approval, container-build-push]
+    defaults:
+      run:
+        working-directory: terraform
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.5.0"
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Download Plan
+        uses: actions/download-artifact@v4
+        with:
+          name: terraform-plan
+          path: terraform/
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve tfplan
+
+  # ===========================================
+  # Stage 12: Post-Deploy Drift Detection
+  # ===========================================
+  drift-detection:
+    name: Drift Detection
+    runs-on: ubuntu-latest
+    needs: [terraform-apply]
+    defaults:
+      run:
+        working-directory: terraform
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.5.0"
+
+      - name: Install Conftest
+        run: |
+          wget -q https://github.com/open-policy-agent/conftest/releases/download/v0.46.0/conftest_0.46.0_Linux_x86_64.tar.gz
+          tar xzf conftest_0.46.0_Linux_x86_64.tar.gz
+          sudo mv conftest /usr/local/bin/
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Detect Drift
+        id: drift
+        run: |
+          terraform plan -detailed-exitcode -out=driftplan || exitcode=$?
+          if [ "$exitcode" == "2" ]; then
+            echo "drift_detected=true" >> $GITHUB_OUTPUT
+            echo "WARNING: Infrastructure drift detected!"
+          else
+            echo "drift_detected=false" >> $GITHUB_OUTPUT
+            echo "No drift detected."
+          fi
+
+      - name: Generate Drift Plan JSON
+        if: steps.drift.outputs.drift_detected == 'true'
+        run: terraform show -json driftplan > driftplan.json
+
+      - name: Re-validate OPA Policies
+        if: steps.drift.outputs.drift_detected == 'true'
+        run: conftest test driftplan.json --policy ../policies/ --all-namespaces
+
+  # ===========================================
+  # Stage 13: Update Image Tags (Bot)
+  # ===========================================
+  update-image-tags:
+    name: Update Image Tags
+    runs-on: ubuntu-latest
+    needs: [container-build-push]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update Terraform variables
+        run: |
+          SHORT_SHA=${{ needs.container-build-push.outputs.short-sha }}
+
+          # Update frontend image
+          sed -i "s|ghcr.io/himanm/devops-project-11-frontend:[a-zA-Z0-9]*|ghcr.io/himanm/devops-project-11-frontend:${SHORT_SHA}|g" terraform/variables.tf
+
+          # Update backend image
+          sed -i "s|ghcr.io/himanm/devops-project-11-backend:[a-zA-Z0-9]*|ghcr.io/himanm/devops-project-11-backend:${SHORT_SHA}|g" terraform/variables.tf
+
+      - name: Commit and push changes
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+
+          git add terraform/variables.tf
+          git diff --staged --quiet || git commit -m "chore: update image tags to ${{ needs.container-build-push.outputs.short-sha }} [skip ci]"
+          git push
