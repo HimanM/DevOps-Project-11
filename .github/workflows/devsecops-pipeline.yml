@@ -197,7 +197,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Scan frontend image
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.28.0
         with:
           image-ref: "${{ env.FRONTEND_IMAGE }}:latest"
           format: "table"
@@ -207,7 +207,7 @@ jobs:
           severity: "CRITICAL,HIGH"
 
       - name: Scan backend image
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.28.0
         with:
           image-ref: "${{ env.BACKEND_IMAGE }}:latest"
           format: "table"
