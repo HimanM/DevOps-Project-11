@@ -84,14 +84,6 @@ resource "aws_ecs_task_definition" "frontend" {
           "awslogs-stream-prefix" = "frontend"
         }
       }
-
-      healthCheck = {
-        command     = ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000/ || exit 1"]
-        interval    = 30
-        timeout     = 5
-        retries     = 3
-        startPeriod = 60
-      }
     }
   ])
 
@@ -142,14 +134,6 @@ resource "aws_ecs_task_definition" "backend" {
           "awslogs-region"        = var.aws_region
           "awslogs-stream-prefix" = "backend"
         }
-      }
-
-      healthCheck = {
-        command     = ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3001/health || exit 1"]
-        interval    = 30
-        timeout     = 5
-        retries     = 3
-        startPeriod = 30
       }
     }
   ])
