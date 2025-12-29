@@ -13,6 +13,7 @@ on:
       - "docs/**"
       - ".github/**"
       - "LICENSE"
+      - "CNAME"
   pull_request:
     branches: [main]
   workflow_dispatch:
