@@ -465,6 +465,57 @@ See `terraform/terraform.tfvars.example` for all available configuration options
 
 ---
 
+## Infrastructure Teardown
+
+To completely destroy the AWS infrastructure and clean up resources:
+
+### Step 1: Destroy Infrastructure
+
+```bash
+cd terraform
+terraform destroy -auto-approve
+```
+
+This will remove all AWS resources including:
+- ECS cluster and services
+- Load balancers
+- VPC and networking
+- IAM roles
+- S3 buckets
+- CloudWatch log groups
+
+### Step 2: Delete State Files
+
+After destroy completes, delete the S3 state bucket and local files:
+
+```bash
+# Delete S3 state bucket (must be emptied first)
+aws s3 rm s3://devsecops-project-11-tfstate --recursive --region us-west-2
+aws s3 rb s3://devsecops-project-11-tfstate --region us-west-2
+
+# Delete local Terraform files
+rm -rf .terraform/
+rm -f .terraform.lock.hcl
+rm -f tfplan
+rm -f terraform.tfstate*
+```
+
+### Step 3: Clean Up GitHub Packages (Optional)
+
+Delete container images from GHCR:
+
+1. Go to your GitHub profile
+2. Navigate to **Packages**
+3. Find `devops-project-11-frontend` and `devops-project-11-backend`
+4. Click on each package and select **Delete package**
+
+### Step 4: Remove GitHub Secrets (Optional)
+
+1. Go to Repository **Settings** > **Secrets and variables** > **Actions**
+2. Delete the `AWS_ROLE_ARN` secret
+
+---
+
 ## Contributing
 
 1. Fork the repository

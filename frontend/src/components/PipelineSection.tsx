@@ -1,6 +1,22 @@
 "use client";
 
 import { useState } from "react";
+import {
+    SiNextdotjs,
+    SiNodedotjs,
+    SiDocker,
+    SiTerraform
+} from "react-icons/si";
+import {
+    FaShieldAlt,
+    FaCheckCircle,
+    FaClipboardCheck,
+    FaClock,
+    FaRocket,
+    FaSyncAlt,
+    FaKey,
+    FaBalanceScale
+} from "react-icons/fa";
 
 interface PipelineStage {
     id: string;
@@ -19,11 +35,7 @@ const pipelineStages: PipelineStage[] = [
         name: "Secret Scanning",
         description: "Detect hardcoded secrets and credentials in source code",
         tool: "Gitleaks",
-        icon: (
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-            </svg>
-        ),
+        icon: <FaKey className="w-6 h-6" />,
         color: "red",
         details: [
             "Scans entire repository for secrets",
@@ -37,11 +49,7 @@ const pipelineStages: PipelineStage[] = [
         name: "Frontend Lint & Build",
         description: "Static analysis and build verification for Next.js application",
         tool: "ESLint + Next.js",
-        icon: (
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-            </svg>
-        ),
+        icon: <SiNextdotjs className="w-6 h-6" />,
         color: "blue",
         details: [
             "Runs ESLint for code quality",
@@ -55,11 +63,7 @@ const pipelineStages: PipelineStage[] = [
         name: "Backend Lint & Build",
         description: "Code quality checks for Node.js Express application",
         tool: "ESLint + Node.js",
-        icon: (
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2" />
-            </svg>
-        ),
+        icon: <SiNodedotjs className="w-6 h-6" />,
         color: "green",
         details: [
             "Runs ESLint for code quality",
@@ -73,11 +77,7 @@ const pipelineStages: PipelineStage[] = [
         name: "Container Build & Push",
         description: "Build Docker images and push to GitHub Container Registry",
         tool: "Docker + GHCR",
-        icon: (
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" />
-            </svg>
-        ),
+        icon: <SiDocker className="w-6 h-6" />,
         color: "cyan",
         details: [
             "Multi-stage Docker builds",
@@ -91,11 +91,7 @@ const pipelineStages: PipelineStage[] = [
         name: "Container Security Scan",
         description: "Scan container images for vulnerabilities",
         tool: "Trivy",
-        icon: (
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-            </svg>
-        ),
+        icon: <FaShieldAlt className="w-6 h-6" />,
         color: "purple",
         details: [
             "Scans for CVEs in OS packages",
@@ -109,11 +105,7 @@ const pipelineStages: PipelineStage[] = [
         name: "Terraform Format & Validate",
         description: "Verify Terraform configuration syntax and formatting",
         tool: "Terraform",
-        icon: (
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-        ),
+        icon: <SiTerraform className="w-6 h-6" />,
         color: "violet",
         details: [
             "Checks formatting with terraform fmt",
@@ -127,11 +119,7 @@ const pipelineStages: PipelineStage[] = [
         name: "IaC Security Scan",
         description: "Static analysis for infrastructure security misconfigurations",
         tool: "Checkov",
-        icon: (
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-            </svg>
-        ),
+        icon: <FaCheckCircle className="w-6 h-6" />,
         color: "orange",
         details: [
             "400+ security policies",
@@ -145,11 +133,7 @@ const pipelineStages: PipelineStage[] = [
         name: "OPA Policy Enforcement",
         description: "Custom policy validation using Open Policy Agent",
         tool: "Conftest + OPA",
-        icon: (
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-            </svg>
-        ),
+        icon: <FaBalanceScale className="w-6 h-6" />,
         color: "teal",
         details: [
             "No public backend policy",
@@ -163,11 +147,7 @@ const pipelineStages: PipelineStage[] = [
         name: "Terraform Plan",
         description: "Generate and review infrastructure changes",
         tool: "Terraform",
-        icon: (
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-        ),
+        icon: <FaClipboardCheck className="w-6 h-6" />,
         color: "indigo",
         details: [
             "Generates execution plan",
@@ -181,15 +161,11 @@ const pipelineStages: PipelineStage[] = [
         name: "Manual Approval",
         description: "Human review gate before production deployment",
         tool: "GitHub Environments",
-        icon: (
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-        ),
+        icon: <FaClock className="w-6 h-6" />,
         color: "yellow",
         details: [
             "Requires designated reviewer approval",
-            "Timeout after 72 hours",
+            "Configurable timeout",
             "Audit trail of approvals",
         ],
         failureExample: "Reject the deployment manually",
@@ -197,18 +173,14 @@ const pipelineStages: PipelineStage[] = [
     {
         id: "terraform-apply",
         name: "Terraform Apply",
-        description: "Apply infrastructure changes to production",
+        description: "Apply infrastructure changes to AWS",
         tool: "Terraform",
-        icon: (
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-            </svg>
-        ),
+        icon: <FaRocket className="w-6 h-6" />,
         color: "emerald",
         details: [
             "Applies saved plan",
             "Creates/updates AWS resources",
-            "Stores state in backend",
+            "Stores state in S3 backend",
         ],
         failureExample: "AWS credentials expired or insufficient permissions",
     },
@@ -217,11 +189,7 @@ const pipelineStages: PipelineStage[] = [
         name: "Drift Detection",
         description: "Detect infrastructure configuration drift post-deployment",
         tool: "Terraform + OPA",
-        icon: (
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-        ),
+        icon: <FaSyncAlt className="w-6 h-6" />,
         color: "rose",
         details: [
             "Runs terraform plan post-deploy",
@@ -278,8 +246,8 @@ export default function PipelineSection() {
                                 key={stage.id}
                                 onClick={() => setSelectedStage(selectedStage?.id === stage.id ? null : stage)}
                                 className={`relative p-4 rounded-xl border transition-all duration-300 text-left group ${selectedStage?.id === stage.id
-                                        ? `${colors.border} ${colors.bgLight} shadow-lg`
-                                        : "border-slate-700/50 hover:border-slate-600/50 bg-slate-800/30 hover:bg-slate-800/50"
+                                    ? `${colors.border} ${colors.bgLight} shadow-lg`
+                                    : "border-slate-700/50 hover:border-slate-600/50 bg-slate-800/30 hover:bg-slate-800/50"
                                     }`}
                             >
                                 {/* Stage Number */}
