@@ -102,17 +102,17 @@ resource "aws_security_group" "backend" {
   }
 }
 
-# Backend Ingress - From Frontend ONLY (Critical security control)
-resource "aws_vpc_security_group_ingress_rule" "backend_from_frontend" {
+# Backend Ingress - From Internal ALB ONLY (Critical security control)
+resource "aws_vpc_security_group_ingress_rule" "backend_from_internal_alb" {
   security_group_id            = aws_security_group.backend.id
-  description                  = "Traffic from frontend security group only"
+  description                  = "Traffic from internal ALB security group only"
   from_port                    = 3001
   to_port                      = 3001
   ip_protocol                  = "tcp"
-  referenced_security_group_id = aws_security_group.frontend.id
+  referenced_security_group_id = aws_security_group.internal_alb.id
 
   tags = {
-    Name = "${var.project_name}-backend-from-frontend"
+    Name = "${var.project_name}-backend-from-internal-alb"
   }
 }
 
