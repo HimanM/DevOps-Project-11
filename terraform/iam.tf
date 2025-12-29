@@ -180,7 +180,9 @@ resource "aws_iam_role_policy" "github_actions" {
           "iam:GetPolicyVersion",
           "iam:ListAttachedRolePolicies",
           "iam:ListRolePolicies",
-          "iam:GetRolePolicy"
+          "iam:GetRolePolicy",
+          "iam:GetOpenIDConnectProvider",
+          "application-autoscaling:Describe*"
         ]
         Resource = "*"
       },
@@ -190,11 +192,15 @@ resource "aws_iam_role_policy" "github_actions" {
           "s3:GetObject",
           "s3:PutObject",
           "s3:DeleteObject",
-          "s3:ListBucket"
+          "s3:ListBucket",
+          "s3:GetBucketPolicy",
+          "s3:GetEncryptionConfiguration",
+          "s3:GetBucketPublicAccessBlock"
         ]
         Resource = [
           "arn:aws:s3:::${var.project_name}-tfstate",
-          "arn:aws:s3:::${var.project_name}-tfstate/*"
+          "arn:aws:s3:::${var.project_name}-tfstate/*",
+          "arn:aws:s3:::${var.project_name}-alb-logs-*" # Added to allow access to logs bucket
         ]
       },
       {
