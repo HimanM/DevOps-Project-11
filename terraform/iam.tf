@@ -198,10 +198,14 @@ resource "aws_iam_role_policy" "github_actions" {
           "s3:GetEncryptionConfiguration",
           "s3:GetBucketPublicAccessBlock",
           "s3:GetBucketAcl",
-          "s3:GetBucketCORS",            # Added for Terraform refresh
-          "s3:GetBucketVersioning",      # Proactively added
-          "s3:GetBucketLogging",         # Proactively added
-          "s3:GetLifecycleConfiguration" # Proactively added
+          "s3:GetBucketCORS",              # Added for Terraform refresh
+          "s3:GetBucketVersioning",        # Proactively added
+          "s3:GetBucketLogging",           # Proactively added
+          "s3:GetLifecycleConfiguration",  # Proactively added
+          "s3:GetBucketWebsite",           # Added - Current Error
+          "s3:GetBucketTagging",           # Proactively added
+          "s3:GetAccelerateConfiguration", # Proactively added
+          "s3:GetReplicationConfiguration" # Proactively added
         ]
         Resource = [
           "arn:aws:s3:::${var.project_name}-tfstate",
