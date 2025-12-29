@@ -182,7 +182,8 @@ resource "aws_iam_role_policy" "github_actions" {
           "iam:ListRolePolicies",
           "iam:GetRolePolicy",
           "iam:GetOpenIDConnectProvider",
-          "application-autoscaling:Describe*"
+          "application-autoscaling:Describe*",
+          "application-autoscaling:ListTagsForResource"
         ]
         Resource = "*"
       },
@@ -195,7 +196,8 @@ resource "aws_iam_role_policy" "github_actions" {
           "s3:ListBucket",
           "s3:GetBucketPolicy",
           "s3:GetEncryptionConfiguration",
-          "s3:GetBucketPublicAccessBlock"
+          "s3:GetBucketPublicAccessBlock",
+          "s3:GetBucketAcl"
         ]
         Resource = [
           "arn:aws:s3:::${var.project_name}-tfstate",
