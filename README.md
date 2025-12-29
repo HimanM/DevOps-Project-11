@@ -13,10 +13,10 @@ A production-grade DevSecOps demonstration platform implementing enterprise-leve
 
 | Resource | Value |
 |----------|-------|
-| **Frontend URL** | [http://devsecops-11-pub-alb-194705882.us-west-2.elb.amazonaws.com](http://devsecops-11-pub-alb-194705882.us-west-2.elb.amazonaws.com) |
+| **Frontend URL** | [http://devsecops-11-pub-alb-1507380937.us-west-2.elb.amazonaws.com](http://devsecops-11-pub-alb-1507380937.us-west-2.elb.amazonaws.com) |
 | **ECS Cluster** | `devsecops-project-11-cluster` |
 | **AWS Region** | `us-west-2` |
-| **Last Deployed** | 2025-12-29 05:41:00 UTC |
+| **Last Deployed** | 2025-12-29 20:33:53 UTC |
 
 <!-- DEPLOYMENT_OUTPUTS_END -->
 
@@ -45,6 +45,7 @@ A production-grade DevSecOps demonstration platform implementing enterprise-leve
   <img src="https://img.shields.io/badge/Checkov-6E4C9E?style=for-the-badge&logo=prismacloud&logoColor=white" alt="Checkov"/>
   <img src="https://img.shields.io/badge/OPA-7D9FC3?style=for-the-badge&logo=openpolicyagent&logoColor=white" alt="OPA"/>
 </p>
+
 
 ---
 
