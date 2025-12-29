@@ -9,14 +9,170 @@ A production-grade DevSecOps demonstration platform implementing enterprise-leve
 <!-- DEPLOYMENT_OUTPUTS_START -->
 ## Live Deployment
 
-> **Note:** This section is automatically updated by the CI/CD pipeline after each successful deployment.
+> **Infrastructure is deployed and running!**
 
 | Resource | Value |
 |----------|-------|
-| **Frontend URL** | *Deployment pending* |
-| **ECS Cluster** | devsecops-project-11-cluster |
-| **AWS Region** | us-west-2 |
-| **Last Deployed** | Not yet deployed |
+| **Frontend URL** | [http://devsecops-11-pub-alb-194705882.us-west-2.elb.amazonaws.com](http://devsecops-11-pub-alb-194705882.us-west-2.elb.amazonaws.com) |
+| **ECS Cluster** | `devsecops-project-11-cluster` |
+| **AWS Region** | `us-west-2` |
+| **Last Deployed** | 2025-12-29 05:10:00 UTC |
+
+<!-- DEPLOYMENT_OUTPUTS_END -->
+<!-- DEPLOYMENT_OUTPUTS_START -->
+## Live Deployment
+
+> **Infrastructure is deployed and running!**
+
+| Resource | Value |
+|----------|-------|
+| **Frontend URL** | [http://devsecops-11-pub-alb-194705882.us-west-2.elb.amazonaws.com](http://devsecops-11-pub-alb-194705882.us-west-2.elb.amazonaws.com) |
+| **ECS Cluster** | `devsecops-project-11-cluster` |
+| **AWS Region** | `us-west-2` |
+| **Last Deployed** | 2025-12-29 05:10:00 UTC |
+
+<!-- DEPLOYMENT_OUTPUTS_END -->
+<!-- DEPLOYMENT_OUTPUTS_START -->
+## Live Deployment
+
+> **Infrastructure is deployed and running!**
+
+| Resource | Value |
+|----------|-------|
+| **Frontend URL** | [http://devsecops-11-pub-alb-194705882.us-west-2.elb.amazonaws.com](http://devsecops-11-pub-alb-194705882.us-west-2.elb.amazonaws.com) |
+| **ECS Cluster** | `devsecops-project-11-cluster` |
+| **AWS Region** | `us-west-2` |
+| **Last Deployed** | 2025-12-29 05:10:00 UTC |
+
+<!-- DEPLOYMENT_OUTPUTS_END -->
+<!-- DEPLOYMENT_OUTPUTS_START -->
+## Live Deployment
+
+> **Infrastructure is deployed and running!**
+
+| Resource | Value |
+|----------|-------|
+| **Frontend URL** | [http://devsecops-11-pub-alb-194705882.us-west-2.elb.amazonaws.com](http://devsecops-11-pub-alb-194705882.us-west-2.elb.amazonaws.com) |
+| **ECS Cluster** | `devsecops-project-11-cluster` |
+| **AWS Region** | `us-west-2` |
+| **Last Deployed** | 2025-12-29 05:10:00 UTC |
+
+<!-- DEPLOYMENT_OUTPUTS_END -->
+<!-- DEPLOYMENT_OUTPUTS_START -->
+## Live Deployment
+
+> **Infrastructure is deployed and running!**
+
+| Resource | Value |
+|----------|-------|
+| **Frontend URL** | [http://devsecops-11-pub-alb-194705882.us-west-2.elb.amazonaws.com](http://devsecops-11-pub-alb-194705882.us-west-2.elb.amazonaws.com) |
+| **ECS Cluster** | `devsecops-project-11-cluster` |
+| **AWS Region** | `us-west-2` |
+| **Last Deployed** | 2025-12-29 05:10:00 UTC |
+
+<!-- DEPLOYMENT_OUTPUTS_END -->
+<!-- DEPLOYMENT_OUTPUTS_START -->
+## Live Deployment
+
+> **Infrastructure is deployed and running!**
+
+| Resource | Value |
+|----------|-------|
+| **Frontend URL** | [http://devsecops-11-pub-alb-194705882.us-west-2.elb.amazonaws.com](http://devsecops-11-pub-alb-194705882.us-west-2.elb.amazonaws.com) |
+| **ECS Cluster** | `devsecops-project-11-cluster` |
+| **AWS Region** | `us-west-2` |
+| **Last Deployed** | 2025-12-29 05:10:00 UTC |
+
+<!-- DEPLOYMENT_OUTPUTS_END -->
+<!-- DEPLOYMENT_OUTPUTS_START -->
+## Live Deployment
+
+> **Infrastructure is deployed and running!**
+
+| Resource | Value |
+|----------|-------|
+| **Frontend URL** | [http://devsecops-11-pub-alb-194705882.us-west-2.elb.amazonaws.com](http://devsecops-11-pub-alb-194705882.us-west-2.elb.amazonaws.com) |
+| **ECS Cluster** | `devsecops-project-11-cluster` |
+| **AWS Region** | `us-west-2` |
+| **Last Deployed** | 2025-12-29 05:10:00 UTC |
+
+<!-- DEPLOYMENT_OUTPUTS_END -->
+<!-- DEPLOYMENT_OUTPUTS_START -->
+## Live Deployment
+
+> **Infrastructure is deployed and running!**
+
+| Resource | Value |
+|----------|-------|
+| **Frontend URL** | [http://devsecops-11-pub-alb-194705882.us-west-2.elb.amazonaws.com](http://devsecops-11-pub-alb-194705882.us-west-2.elb.amazonaws.com) |
+| **ECS Cluster** | `devsecops-project-11-cluster` |
+| **AWS Region** | `us-west-2` |
+| **Last Deployed** | 2025-12-29 05:10:00 UTC |
+
+<!-- DEPLOYMENT_OUTPUTS_END -->
+<!-- DEPLOYMENT_OUTPUTS_START -->
+## Live Deployment
+
+> **Infrastructure is deployed and running!**
+
+| Resource | Value |
+|----------|-------|
+| **Frontend URL** | [http://devsecops-11-pub-alb-194705882.us-west-2.elb.amazonaws.com](http://devsecops-11-pub-alb-194705882.us-west-2.elb.amazonaws.com) |
+| **ECS Cluster** | `devsecops-project-11-cluster` |
+| **AWS Region** | `us-west-2` |
+| **Last Deployed** | 2025-12-29 05:10:00 UTC |
+
+<!-- DEPLOYMENT_OUTPUTS_END -->
+<!-- DEPLOYMENT_OUTPUTS_START -->
+## Live Deployment
+
+> **Infrastructure is deployed and running!**
+
+| Resource | Value |
+|----------|-------|
+| **Frontend URL** | [http://devsecops-11-pub-alb-194705882.us-west-2.elb.amazonaws.com](http://devsecops-11-pub-alb-194705882.us-west-2.elb.amazonaws.com) |
+| **ECS Cluster** | `devsecops-project-11-cluster` |
+| **AWS Region** | `us-west-2` |
+| **Last Deployed** | 2025-12-29 05:10:00 UTC |
+
+<!-- DEPLOYMENT_OUTPUTS_END -->
+<!-- DEPLOYMENT_OUTPUTS_START -->
+## Live Deployment
+
+> **Infrastructure is deployed and running!**
+
+| Resource | Value |
+|----------|-------|
+| **Frontend URL** | [http://devsecops-11-pub-alb-194705882.us-west-2.elb.amazonaws.com](http://devsecops-11-pub-alb-194705882.us-west-2.elb.amazonaws.com) |
+| **ECS Cluster** | `devsecops-project-11-cluster` |
+| **AWS Region** | `us-west-2` |
+| **Last Deployed** | 2025-12-29 05:10:00 UTC |
+
+<!-- DEPLOYMENT_OUTPUTS_END -->
+<!-- DEPLOYMENT_OUTPUTS_START -->
+## Live Deployment
+
+> **Infrastructure is deployed and running!**
+
+| Resource | Value |
+|----------|-------|
+| **Frontend URL** | [http://devsecops-11-pub-alb-194705882.us-west-2.elb.amazonaws.com](http://devsecops-11-pub-alb-194705882.us-west-2.elb.amazonaws.com) |
+| **ECS Cluster** | `devsecops-project-11-cluster` |
+| **AWS Region** | `us-west-2` |
+| **Last Deployed** | 2025-12-29 05:10:00 UTC |
+
+<!-- DEPLOYMENT_OUTPUTS_END -->
+<!-- DEPLOYMENT_OUTPUTS_START -->
+## Live Deployment
+
+> **Infrastructure is deployed and running!**
+
+| Resource | Value |
+|----------|-------|
+| **Frontend URL** | [http://devsecops-11-pub-alb-194705882.us-west-2.elb.amazonaws.com](http://devsecops-11-pub-alb-194705882.us-west-2.elb.amazonaws.com) |
+| **ECS Cluster** | `devsecops-project-11-cluster` |
+| **AWS Region** | `us-west-2` |
+| **Last Deployed** | 2025-12-29 05:10:00 UTC |
 
 <!-- DEPLOYMENT_OUTPUTS_END -->
 
