@@ -34,7 +34,8 @@ RUN addgroup --system --gid 1001 nodejs && \
 
 # Security: Remove unnecessary packages and update
 RUN apk --no-cache add dumb-init && \
-    apk upgrade --no-cache
+    apk upgrade --no-cache && \
+    npm install -g npm@latest
 
 WORKDIR /app
 

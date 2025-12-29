@@ -48,7 +48,8 @@ ENV HOSTNAME="0.0.0.0"
 
 # Security: Create non-root user
 RUN addgroup --system --gid 1001 nodejs && \
-    adduser --system --uid 1001 nextjs
+    adduser --system --uid 1001 nextjs && \
+    npm install -g npm@latest
 
 # Copy necessary files for standalone mode
 COPY --from=builder /app/public ./public
