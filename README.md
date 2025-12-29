@@ -409,7 +409,42 @@ The pipeline implements security at every stage with 14 distinct jobs:
 - Terraform 1.5+ (for infrastructure)
 - AWS CLI configured (for deployment)
 
-### Running the Applications
+### Initial Setup (One-Time)
+
+Before running the pipeline or Terraform for the first time, you must:
+
+1. **Create the S3 State Bucket**:
+   Terraform uses this bucket to store state. You must create it manually before `terraform init`.
+   ```bash
+   aws s3 mb s3://devsecops-project-11-tfstate --region us-west-2
+   ```
+
+2. **Initial Container Build & Push**:
+   Terraform needs the container images to exist before it can deploy the ECS tasks.
+   ```bash
+   # Login to GHCR (use your GitHub token with package:write scope)
+   echo $GITHUB_TOKEN | docker login ghcr.io -u YOUR_USERNAME --password-stdin
+
+   # Build and push frontend
+   docker build -t ghcr.io/your_username/devops-project-11-frontend:latest ./frontend
+   docker push ghcr.io/your_username/devops-project-11-frontend:latest
+
+   # Build and push backend
+   docker build -t ghcr.io/your_username/devops-project-11-backend:latest ./backend
+   docker push ghcr.io/your_username/devops-project-11-backend:latest
+   ```
+
+3. **Run Terraform Apply**:
+   Now you can initialize and apply Terraform.
+   ```bash
+   cd terraform
+   terraform init
+   terraform apply -var="frontend_image=ghcr.io/your_username/devops-project-11-frontend:latest" -var="backend_image=ghcr.io/your_username/devops-project-11-backend:latest"
+   ```
+
+After this initial setup, the **CI/CD pipeline is fully automated**!
+
+### Running the Applications Locally
 
 ```bash
 # Clone the repository
