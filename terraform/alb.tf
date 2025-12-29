@@ -5,7 +5,7 @@
 
 # Public ALB for Frontend
 resource "aws_lb" "public" {
-  name               = "${var.project_name}-public-alb"
+  name               = "devsecops-11-pub-alb"
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.alb.id]
@@ -26,7 +26,7 @@ resource "aws_lb" "public" {
 
 # Internal ALB for Backend (not publicly accessible)
 resource "aws_lb" "internal" {
-  name               = "${var.project_name}-internal-alb"
+  name               = "devsecops-11-int-alb"
   internal           = true
   load_balancer_type = "application"
   security_groups    = [aws_security_group.internal_alb.id]
@@ -90,7 +90,7 @@ resource "aws_s3_bucket_public_access_block" "alb_logs" {
 
 # Frontend Target Group
 resource "aws_lb_target_group" "frontend" {
-  name        = "${var.project_name}-frontend-tg"
+  name        = "devsecops-11-fe-tg"
   port        = 3000
   protocol    = "HTTP"
   vpc_id      = aws_vpc.main.id
@@ -113,7 +113,7 @@ resource "aws_lb_target_group" "frontend" {
 
 # Backend Target Group
 resource "aws_lb_target_group" "backend" {
-  name        = "${var.project_name}-backend-tg"
+  name        = "devsecops-11-be-tg"
   port        = 3001
   protocol    = "HTTP"
   vpc_id      = aws_vpc.main.id
