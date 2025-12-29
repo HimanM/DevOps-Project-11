@@ -5,8 +5,6 @@
 
 package main
 
-import rego.v1
-
 # Required tags that must be present on all taggable resources
 required_tags := ["Project", "Environment", "ManagedBy"]
 
@@ -32,12 +30,12 @@ taggable_resources := [
 ]
 
 # Check if resource type is taggable
-is_taggable(resource_type) if {
+is_taggable(resource_type) {
     resource_type == taggable_resources[_]
 }
 
 # Deny resources missing required tags
-deny contains msg if {
+deny[msg] {
     resource := input.resource_changes[_]
     resource.change.actions[_] == "create"
     
@@ -61,7 +59,7 @@ deny contains msg if {
 }
 
 # Deny empty tag values
-deny contains msg if {
+deny[msg] {
     resource := input.resource_changes[_]
     resource.change.actions[_] == "create"
     
@@ -81,7 +79,7 @@ deny contains msg if {
 }
 
 # Warn about resources without Name tag
-warn contains msg if {
+warn[msg] {
     resource := input.resource_changes[_]
     resource.change.actions[_] == "create"
     
@@ -99,7 +97,7 @@ warn contains msg if {
 # Validate Environment tag values
 valid_environments := ["development", "staging", "production"]
 
-deny contains msg if {
+deny[msg] {
     resource := input.resource_changes[_]
     resource.change.actions[_] == "create"
     
@@ -111,10 +109,14 @@ deny contains msg if {
     
     env_value := all_tags["Environment"]
     env_value != ""
-    not env_value in valid_environments
+    not valid_environment(env_value)
     
     msg := sprintf(
         "DENIED: Resource '%s' has invalid Environment tag value '%s'. Must be one of: %v",
         [resource.address, env_value, valid_environments]
     )
+}
+
+valid_environment(env) {
+    env == valid_environments[_]
 }

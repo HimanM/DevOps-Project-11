@@ -5,10 +5,8 @@
 
 package main
 
-import rego.v1
-
 # Deny any security group rule that exposes backend to 0.0.0.0/0
-deny contains msg if {
+deny[msg] {
     resource := input.resource_changes[_]
     resource.type == "aws_vpc_security_group_ingress_rule"
     resource.change.actions[_] != "delete"
@@ -26,7 +24,7 @@ deny contains msg if {
 }
 
 # Deny backend security group with inline public ingress
-deny contains msg if {
+deny[msg] {
     resource := input.resource_changes[_]
     resource.type == "aws_security_group"
     resource.change.actions[_] != "delete"
@@ -45,7 +43,7 @@ deny contains msg if {
 }
 
 # Deny backend ECS service with public IP assignment
-deny contains msg if {
+deny[msg] {
     resource := input.resource_changes[_]
     resource.type == "aws_ecs_service"
     resource.change.actions[_] != "delete"
@@ -63,7 +61,7 @@ deny contains msg if {
 }
 
 # Deny internal ALB being set to internet-facing
-deny contains msg if {
+deny[msg] {
     resource := input.resource_changes[_]
     resource.type == "aws_lb"
     resource.change.actions[_] != "delete"

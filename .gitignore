@@ -81,3 +81,5 @@ debug/
 # Package locks (optional - uncomment if you want to ignore)
 # package-lock.json
 # yarn.lock
+conftest.exe
+conftest.zip

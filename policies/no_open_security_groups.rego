@@ -5,13 +5,11 @@
 
 package main
 
-import rego.v1
-
 # Sensitive ports that should never be open to the internet
 sensitive_ports := [22, 3389, 3306, 5432, 27017, 6379, 11211]
 
 # Deny SSH (port 22) open to internet
-deny contains msg if {
+deny[msg] {
     resource := input.resource_changes[_]
     resource.type == "aws_vpc_security_group_ingress_rule"
     resource.change.actions[_] != "delete"
@@ -27,7 +25,7 @@ deny contains msg if {
 }
 
 # Deny RDP (port 3389) open to internet
-deny contains msg if {
+deny[msg] {
     resource := input.resource_changes[_]
     resource.type == "aws_vpc_security_group_ingress_rule"
     resource.change.actions[_] != "delete"
@@ -43,7 +41,7 @@ deny contains msg if {
 }
 
 # Deny database ports open to internet
-deny contains msg if {
+deny[msg] {
     resource := input.resource_changes[_]
     resource.type == "aws_vpc_security_group_ingress_rule"
     resource.change.actions[_] != "delete"
@@ -64,7 +62,7 @@ deny contains msg if {
 }
 
 # Deny all-ports open to internet (from_port=0, to_port=65535 or protocol=-1)
-deny contains msg if {
+deny[msg] {
     resource := input.resource_changes[_]
     resource.type == "aws_vpc_security_group_ingress_rule"
     resource.change.actions[_] != "delete"
@@ -79,7 +77,7 @@ deny contains msg if {
 }
 
 # Deny inline security group rules with all ports open
-deny contains msg if {
+deny[msg] {
     resource := input.resource_changes[_]
     resource.type == "aws_security_group"
     resource.change.actions[_] != "delete"
@@ -95,7 +93,7 @@ deny contains msg if {
 }
 
 # Warn about wide port ranges open to internet
-warn contains msg if {
+warn[msg] {
     resource := input.resource_changes[_]
     resource.type == "aws_vpc_security_group_ingress_rule"
     resource.change.actions[_] != "delete"

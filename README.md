@@ -176,6 +176,35 @@ The pipeline consists of 13 distinct jobs organized into logical stages:
 
 For detailed information about each job and how to trigger failures for testing, see [CI-CD-JOBS-GUIDE.md](./CI-CD-JOBS-GUIDE.md).
 
+### Checkov Skipped Checks
+
+The following Checkov checks are skipped for this learning project (not production-critical):
+
+| Check ID | Description |
+|----------|-------------|
+| CKV_AWS_144 | S3 cross-region replication |
+| CKV_AWS_145 | S3 KMS encryption |
+| CKV2_AWS_28 | WAF protection for ALB |
+| CKV_AWS_18 | S3 access logging |
+| CKV_AWS_21 | S3 versioning |
+| CKV2_AWS_61 | S3 lifecycle configuration |
+| CKV2_AWS_62 | S3 event notifications |
+| CKV_AWS_103 | TLS 1.2 for load balancer |
+| CKV_AWS_378 | HTTP protocol on load balancer |
+| CKV2_AWS_20 | HTTP to HTTPS redirect |
+| CKV_AWS_130 | Public IP on subnets |
+| CKV2_AWS_12 | Default VPC security group |
+| CKV_AWS_355 | IAM policy resource constraints |
+| CKV_AWS_290 | IAM write access constraints |
+| CKV_AWS_2 | ALB HTTPS protocol |
+| CKV_AWS_158 | CloudWatch log encryption |
+| CKV_AWS_338 | CloudWatch log retention (1 year) |
+| CKV_AWS_289 | IAM permissions management |
+| CKV_AWS_260 | Port 80 ingress from 0.0.0.0/0 |
+| CKV_AWS_131 | ALB drop HTTP headers |
+| CKV_AWS_150 | Load balancer deletion protection |
+| CKV_AWS_91 | ELBv2 access logging |
+
 ---
 
 ## Security Controls
