@@ -65,6 +65,9 @@ resource "aws_ecs_task_definition" "frontend" {
       image     = var.frontend_image
       essential = true
 
+      # Security: Read-only root filesystem
+      readonlyRootFilesystem = true
+
       portMappings = [{
         containerPort = 3000
         protocol      = "tcp"
@@ -74,6 +77,15 @@ resource "aws_ecs_task_definition" "frontend" {
       environment = [
         { name = "NODE_ENV", value = "production" },
         { name = "NEXT_PUBLIC_BACKEND_URL", value = "http://${aws_lb.internal.dns_name}:3001" }
+      ]
+
+      # Mount ephemeral volume for tmp
+      mountPoints = [
+        {
+          sourceVolume  = "tmp"
+          containerPath = "/tmp"
+          readOnly      = false
+        }
       ]
 
       logConfiguration = {
@@ -86,6 +98,11 @@ resource "aws_ecs_task_definition" "frontend" {
       }
     }
   ])
+
+  # Ephemeral volume for tmp directory
+  volume {
+    name = "tmp"
+  }
 
   runtime_platform {
     operating_system_family = "LINUX"
@@ -113,6 +130,9 @@ resource "aws_ecs_task_definition" "backend" {
       image     = var.backend_image
       essential = true
 
+      # Security: Read-only root filesystem
+      readonlyRootFilesystem = true
+
       portMappings = [{
         containerPort = 3001
         protocol      = "tcp"
@@ -127,6 +147,15 @@ resource "aws_ecs_task_definition" "backend" {
         { name = "APP_VERSION", value = "1.0.0" }
       ]
 
+      # Mount ephemeral volume for tmp
+      mountPoints = [
+        {
+          sourceVolume  = "tmp"
+          containerPath = "/tmp"
+          readOnly      = false
+        }
+      ]
+
       logConfiguration = {
         logDriver = "awslogs"
         options = {
@@ -137,6 +166,11 @@ resource "aws_ecs_task_definition" "backend" {
       }
     }
   ])
+
+  # Ephemeral volume for tmp directory
+  volume {
+    name = "tmp"
+  }
 
   runtime_platform {
     operating_system_family = "LINUX"
