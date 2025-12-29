@@ -198,6 +198,8 @@ The pipeline implements security at every stage with **14 distinct jobs**. Each 
 - Pipeline fails immediately if secrets are detected
 - Prevents credentials from reaching production
 
+![Secret Scanning](docs/github_secret_scanning.png)
+
 ---
 
 #### Job 2: Change Detection
@@ -222,6 +224,8 @@ The pipeline implements security at every stage with **14 distinct jobs**. Each 
 - npm audit checks dependencies for known CVEs
 - Next.js build validates the application compiles correctly
 
+![Frontend Lint and Build](docs/github_frontend_build_and_lint.png)
+
 ---
 
 #### Job 4: Backend Lint and Build
@@ -232,6 +236,8 @@ The pipeline implements security at every stage with **14 distinct jobs**. Each 
 - ESLint analyzes Express.js code for security issues
 - npm audit identifies vulnerable dependencies
 - Validates code quality before containerization
+
+![Backend Lint and Build](docs/github_backtend_build_and_lint.png)
 
 ---
 
@@ -258,6 +264,8 @@ The pipeline implements security at every stage with **14 distinct jobs**. Each 
 - Pipeline fails if critical issues are found
 - Prevents vulnerable images from being deployed
 
+![Container Security Scan](docs/github_container_security_scan.png)
+
 ---
 
 #### Job 7: Terraform Format and Validate
@@ -268,6 +276,8 @@ The pipeline implements security at every stage with **14 distinct jobs**. Each 
 - `terraform fmt` checks code formatting
 - `terraform validate` ensures configuration is valid
 - Catches syntax errors before expensive plan operations
+
+![Terraform Format and Validate](docs/github_terraform_format_and_validate.png)
 
 ---
 
@@ -281,6 +291,8 @@ The pipeline implements security at every stage with **14 distinct jobs**. Each 
 - Blocks deployment if critical security issues are found
 - Provides remediation guidance for failures
 
+![IaC Security Scan](docs/github_iac_security_scanning.png)
+
 ---
 
 #### Job 9: OPA Policy Check (Conftest)
@@ -292,6 +304,8 @@ The pipeline implements security at every stage with **14 distinct jobs**. Each 
 - Evaluates Terraform plan JSON against policies
 - Example policies: "Backend must be internal", "All resources must have tags"
 - Prevents policy violations before infrastructure changes
+
+![OPA Policy Check](docs/github_opa_plocy_enforcement.png)
 
 ---
 
@@ -305,6 +319,8 @@ The pipeline implements security at every stage with **14 distinct jobs**. Each 
 - Plan artifact is saved for review and approval
 - Enables informed decision-making before deployment
 
+![Terraform Plan](docs/github_terraform_plan.png)
+
 ---
 
 #### Job 11: Manual Approval
@@ -316,6 +332,8 @@ The pipeline implements security at every stage with **14 distinct jobs**. Each 
 - Terraform plan is visible before approval
 - Creates audit trail of who approved what and when
 - Prevents automated but unauthorized deployments
+
+![Manual Approval](docs/github_manual_approval.png)
 
 ![Manual Approval Workflow](docs/github_manual_approval_workflow.png)
 
@@ -331,6 +349,8 @@ The pipeline implements security at every stage with **14 distinct jobs**. Each 
 - Updates ECS services with new container images
 - Creates/modifies AWS resources as defined
 
+![Terraform Apply](docs/github_terraform_apply.png)
+
 ---
 
 #### Job 13: Drift Detection
@@ -342,6 +362,8 @@ The pipeline implements security at every stage with **14 distinct jobs**. Each 
 - Compares AWS state to Terraform configuration
 - Re-evaluates OPA policies against current state
 - Alerts on unauthorized manual changes
+
+![Drift Detection](docs/github_terraform_drift_detection.png)
 
 ---
 
