@@ -1,0 +1,58 @@
+# Gitleaks Configuration
+# Custom rules and allowlists for the DevSecOps project
+
+title = "Gitleaks Configuration"
+
+[extend]
+# Use default gitleaks rules
+useDefault = true
+
+# Allow test credentials and examples
+[allowlist]
+description = "Allowed patterns for documentation and examples"
+regexTarget = "line"
+regexes = [
+    # Allow example placeholders
+    '''EXAMPLE''',
+    '''example''',
+    '''placeholder''',
+    '''your-.*-here''',
+    # Allow Terraform variable references
+    '''var\..*''',
+    # Allow environment variable references
+    '''\$\{.*\}''',
+]
+paths = [
+    # Documentation files
+    '''README\.md''',
+    '''CI-CD-JOBS-GUIDE\.md''',
+    '''.*\.example''',
+    # Test files
+    '''.*test.*''',
+    '''.*spec.*''',
+]
+
+# Additional rules for cloud credentials
+[[rules]]
+id = "aws-access-key-id"
+description = "AWS Access Key ID"
+regex = '''(A3T[A-Z0-9]|AKIA|AGPA|AIDA|AROA|AIPA|ANPA|ANVA|ASIA)[A-Z0-9]{16}'''
+tags = ["aws", "credentials"]
+
+[[rules]]
+id = "github-personal-access-token"
+description = "GitHub Personal Access Token"
+regex = '''ghp_[a-zA-Z0-9]{36}'''
+tags = ["github", "token"]
+
+[[rules]]
+id = "github-oauth-access-token"
+description = "GitHub OAuth Access Token"
+regex = '''gho_[a-zA-Z0-9]{36}'''
+tags = ["github", "token", "oauth"]
+
+[[rules]]
+id = "github-app-token"
+description = "GitHub App Token"
+regex = '''(ghu|ghs)_[a-zA-Z0-9]{36}'''
+tags = ["github", "token", "app"]
